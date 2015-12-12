@@ -11,7 +11,7 @@
 (>)               return (OUT);
 (>>)              return (APPEND);
 (<)               return (IN);
-[a-zA-Z0-9\/.-^]+[:blank:]*[a-zA-Z0-9\/.-^]+        return (AFILE);
+[a-zA-Z0-9\/.\^-]+[:blank:]*[a-zA-Z0-9\/.\^-]+        return (AFILE);
 [ \t\n]            ;
 .                 printf("Syntax Error");
 %%
