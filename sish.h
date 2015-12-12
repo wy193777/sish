@@ -13,7 +13,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
+
+#define BUFSIZE 1024
+
 void init();
 void loop();
+char* getinput();
+
 
 #endif /* SISH_H_ */
