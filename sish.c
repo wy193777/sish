@@ -12,6 +12,8 @@ extern char * given_c;
 int token_position;
 int token_size;
 char *input_error;
+char ** tokens;
+
 
 void init() {
     pid_t shell_pgid;
@@ -124,7 +126,7 @@ char* getinput() {
 	}
 }
 
-void split_input(char *line, char ** tokens) {
+void split_input(char *line) {
 	token_position = 0;
 
 	tokens[token_position] = strtok(line, "\t ");
@@ -163,88 +165,112 @@ void split_input(char *line, char ** tokens) {
 }
 
 
+
+void builtins_cd(){
+
+	if(token_position > 2) {
+    	printf("usage: cd [dir]\n");
+    	return;
+    }
+
+    char *dir;
+    char *user;
+
+	if((dir = malloc(sizeof(char) * BUFSIZE * 4)) == NULL) {
+    	perror("malloc dir");
+    	return;
+    }
+
+    /* 
+	 *  when [dir] is not specified or equals to "~",
+	 *  change directory to the user's home directory
+     */
+    if(token_position == 1 || 
+    	(token_position == 2 && strcmp(tokens[token_position-1], "~") == 0)) {
+    	strcpy(dir, "/home/");
+    	if((user = getlogin()) == NULL) {
+    		perror("get username");
+    		return;
+    	}
+    	strcat(dir, user);
+    }
+    /*
+	 *  when [dir] is "~username",
+	 *  change directory to "/home/username"
+     */
+    else if(tokens[token_position-1][0] == '~') {
+    	strcpy(dir, "/home/");
+    	if(tokens[token_position-1][1] == '/') {
+    		if((user = getlogin()) == NULL) {
+    			perror("get username");
+    			return;
+    		}
+    		strcat(dir, user);
+    	}
+    	strcat(dir, &tokens[token_position-1][1]);
+    }
+    /* change directory to [dir] */
+    else{
+    	strcpy(dir, tokens[token_position-1]);
+    }
+    if(chdir(dir) == -1) {
+    	perror("cd");
+    	return;
+    }
+
+    //debug information
+    char *curdir;
+    if((curdir = malloc(BUFSIZE * sizeof(char))) == NULL) {
+    	perror("malloc curdir");
+    	return;
+    }
+    getcwd(curdir,BUFSIZE);
+    printf("current working directory: %s\n", curdir);
+}
+
+
 void loop() {
     char * line;
-    char ** tokens;
     //size_t size = 0;
     int i;
 
     while (1) {
+    	//print a command-line prompt
         printf("sish$ ");
+
+        //get an input line
         line = getinput();
-        //builtins: exit
-        if(strcmp(line, "exit") == 0) {
-        	exit(EXIT_SUCCESS);
-        }
-        //input nothing
-        if(strlen(line) == 0) {
-        	continue;
-        }
 
         token_size = BUFSIZE;
         if((tokens = malloc(sizeof(char*) * token_size)) == NULL) {
 			perror("tokens malloc");
 			exit(EXIT_FAILURE);
 		}
-        split_input(line, tokens);
+
+		//split input into tokens
+        split_input(line);
 
         //no non-empty tokens
         if(token_position == 0) {
         	continue;
         }
 
+        //builtins: exit
+        if(strcmp(tokens[0], "exit") == 0) {
+        	if (token_position == 1)
+        		exit(EXIT_SUCCESS);
+        	else {
+        		printf("exit: too many arguments\nusage: exit\n");
+        		continue;
+        	}
+        }
+
         //builtins: cd
         if(strcmp(tokens[0], "cd") == 0) {
-        	if(token_position > 2) {
-        		printf("usage: cd [dir]\n");
-        		continue;
-        	}
-        	char *dir;
-        	char *user;
-
-			if((dir = malloc(sizeof(char) * BUFSIZE * 4)) == NULL) {
-        		perror("malloc dir");
-        		exit(EXIT_FAILURE);
-        	}
-
-        	/* 
-			 *  when [dir] is not specified or equals to "~",
-			 *  change directory to the user's home directory
-        	 */
-        	if(token_position == 1 || 
-        		(token_position == 2 && strcmp(tokens[token_position-1], "~") == 0)) {
-        		strcpy(dir, "/home/");
-        		if((user = getlogin()) == NULL) {
-        			perror("get username");
-        			//exit(EXIT_FAILURE);
-        		}
-        		strcat(dir, user);
-        	}
-        	/*
-			 *  when [dir] is "~username",
-			 *  change directory to "/home/username"
-        	 */
-        	else if(tokens[token_position-1][0] == '~') {
-        		strcpy(dir, "/home/");
-        		strcat(dir, &tokens[token_position-1][1]);
-        	}
-			else{
-        		strcpy(dir, tokens[token_position-1]);
-        	}
-        	if(chdir(dir) == -1) {
-        		perror("cd");
-        		continue;
-        	}
-        	char *curdir;
-			if((curdir = malloc(BUFSIZE * sizeof(char))) == NULL) {
-				perror("malloc curdir");
-				exit(EXIT_FAILURE);
-			}
-			getcwd(curdir,BUFSIZE);
-			//debug information
-        	printf("current working directory: %s\n", curdir);
+        	builtins_cd();
         	continue;
         }
+
         for(i = 0; i < token_position; i++) {
         	printf("%s\n", tokens[i]);
         }

@@ -20,6 +20,7 @@
 void init();
 void loop();
 char* getinput();
+void split_input(char *line);
 
 
 #endif /* SISH_H_ */
