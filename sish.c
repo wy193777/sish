@@ -8,17 +8,18 @@
 
 extern int to_stderr;
 extern int f_given_c;
+extern char * given_c;
 int token_position;
 int token_size;
 char *input_error;
 
 void init() {
     pid_t shell_pgid;
-    struct termios shell_tmodes;
-    int shell_terminal;
+    //struct termios shell_tmodes;
+    //int shell_terminal;
 
     /* See if we are running interactively.  */
-    shell_terminal = STDIN_FILENO;
+    //shell_terminal = STDIN_FILENO;
 
     if(signal(SIGINT, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGINT");
@@ -50,6 +51,7 @@ void init() {
 //    /* Save default terminal attributes for shell.  */
 //    tcgetattr (shell_terminal, &shell_tmodes);
 }
+
 
 char* getinput() {
 	char *buf;
@@ -123,7 +125,6 @@ char* getinput() {
 }
 
 void split_input(char *line, char ** tokens) {
-	char* tmp_token;
 	token_position = 0;
 
 	tokens[token_position] = strtok(line, "\t ");
@@ -165,28 +166,75 @@ void split_input(char *line, char ** tokens) {
 void loop() {
     char * line;
     char ** tokens;
-    size_t size = 0;
+    //size_t size = 0;
     int i;
 
     while (1) {
         printf("sish$ ");
         line = getinput();
+        //builtins: exit
         if(strcmp(line, "exit") == 0) {
         	exit(EXIT_SUCCESS);
         }
+        //input nothing
         if(strlen(line) == 0) {
         	continue;
         }
-        else {
-        	token_size = BUFSIZE;
-        	if((tokens = malloc(sizeof(char*) * token_size)) == NULL) {
-				perror("tokens malloc");
+
+        token_size = BUFSIZE;
+        if((tokens = malloc(sizeof(char*) * token_size)) == NULL) {
+			perror("tokens malloc");
+			exit(EXIT_FAILURE);
+		}
+        split_input(line, tokens);
+
+        //no non-empty tokens
+        if(token_position == 0) {
+        	continue;
+        }
+
+        //builtins: cd
+        if(strcmp(tokens[0], "cd") == 0) {
+        	if(token_position > 2) {
+        		printf("usage: cd [dir]\n");
+        		continue;
+        	}
+        	char *dir;
+        	char *user;
+
+			if((dir = malloc(sizeof(char) * BUFSIZE * 4)) == NULL) {
+        		perror("malloc dir");
+        		exit(EXIT_FAILURE);
+        	}
+
+        	//change directory to the user's home directory
+        	if(token_position == 1) {
+        		strcpy(dir, "/home/");
+        		if((user = getlogin()) == NULL) {
+        			perror("getlogin");
+        			exit(EXIT_FAILURE);
+        		}
+        		strcat(dir, user);
+        	}
+        	else {
+        		strcpy(dir, tokens[token_position-1]);
+        	}
+        	if(chdir(dir) == -1) {
+        		perror("cd");
+        		continue;
+        	}
+        	char *curdir;
+			if((curdir = malloc(BUFSIZE * sizeof(char))) == NULL) {
+				perror("malloc curdir");
 				exit(EXIT_FAILURE);
 			}
-        	split_input(line, tokens);
-        	for(i = 0; i < token_position; i++) {
-        		printf("%s\n", tokens[i]);
-        	}
+			getcwd(curdir,BUFSIZE);
+			//debug information
+        	printf("current working directory: %s\n", curdir);
+        	continue;
+        }
+        for(i = 0; i < token_position; i++) {
+        	printf("%s\n", tokens[i]);
         }
     }
 }

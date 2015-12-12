@@ -13,6 +13,7 @@
   */
 int to_stderr = 0;
 int f_given_c = 0;
+char * given_c;
 
 void usage() {
     printf(
@@ -23,7 +24,6 @@ void usage() {
 
 int main(int argc, char * argv[]) {
 	int ch;
-	char * given_c;
     while ((ch = getopt(argc, argv, "c:x")) != -1) {
         switch(ch) {
         case 'c':
@@ -40,5 +40,5 @@ int main(int argc, char * argv[]) {
     }
     init();
     loop();
-	return EXIT_SUCCESS;
+	exit(EXIT_SUCCESS);
 }
