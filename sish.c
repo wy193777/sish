@@ -51,6 +51,7 @@ void loop() {
             perror ("getline:");
             exit(EXIT_FAILURE);
         }
+
         printf("%s", line);
     }
 
