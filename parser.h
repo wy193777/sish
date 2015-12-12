@@ -1,0 +1,9 @@
+#define PIPE   100
+#define CD     200
+#define EXIT   300
+#define AECHO  400
+#define OUT    500
+#define APPEND 600
+#define IN     700
+#define AFILE  800
+#define BG     900
