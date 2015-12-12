@@ -207,16 +207,28 @@ void loop() {
         		exit(EXIT_FAILURE);
         	}
 
-        	//change directory to the user's home directory
-        	if(token_position == 1) {
+        	/* 
+			 *  when [dir] is not specified or equals to "~",
+			 *  change directory to the user's home directory
+        	 */
+        	if(token_position == 1 || 
+        		(token_position == 2 && strcmp(tokens[token_position-1], "~") == 0)) {
         		strcpy(dir, "/home/");
         		if((user = getlogin()) == NULL) {
-        			perror("getlogin");
-        			exit(EXIT_FAILURE);
+        			perror("get username");
+        			//exit(EXIT_FAILURE);
         		}
         		strcat(dir, user);
         	}
-        	else {
+        	/*
+			 *  when [dir] is "~username",
+			 *  change directory to "/home/username"
+        	 */
+        	else if(tokens[token_position-1][0] == '~') {
+        		strcpy(dir, "/home/");
+        		strcat(dir, &tokens[token_position-1][1]);
+        	}
+			else{
         		strcpy(dir, tokens[token_position-1]);
         	}
         	if(chdir(dir) == -1) {
