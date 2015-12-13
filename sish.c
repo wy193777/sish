@@ -407,11 +407,13 @@ void loop() {
         		printf("\nout_file: %s", cur->out_file);
         		printf("\nin_file: %s", cur->in_file);
         		printf("\nappend_file: %s\n\n", cur->append_file);
+
+        		execvp(cur->command[0], cur->command);
+        		fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
+        		exit(CANNOT_EXECUTE);
         		cur = cur->next;
         	}
-        	/*execvp(taskHead->command[0], taskHead->command);
-        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));*/
-        	exit(CANNOT_EXECUTE);
+
 
        	}
        	else { //parent
