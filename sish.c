@@ -11,7 +11,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include "sish.h"
-
+extern struct task * top_task;
+extern struct task * curr_task;
 void init() {
     pid_t shell_pgid;
     struct termios shell_tmodes;
@@ -45,14 +46,26 @@ void init() {
 void loop() {
     char * line = NULL;
     size_t size = 0;
+    int parse_result;
     while (1) {
         printf("sish$ ");
-        if (getline(&line, &size, stdin) < 0) {
-            perror ("getline:");
-            exit(EXIT_FAILURE);
+        parse_result = yyparse();
+        if (top_task == NULL) {
+          printf("top_task is NULL");
+          exit(1);
         }
-
-        printf("%s", line);
+        struct task *curr = top_task;
+        while (curr) {
+          printf("   Command: %s\n", curr->command);
+          printf("   In file: %s\n", curr->in_file);
+          printf("  Out file: %s\n", curr->out_file);
+          printf("    Append: %s\n", curr->append_file);
+          printf("Background: %d\n", curr->background);
+          putchar('\n');
+          curr = curr->next;
+        }
+        top_task = NULL;
+        curr_task = NULL;
     }
 }
 
