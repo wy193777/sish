@@ -226,13 +226,13 @@ void builtins_cd(){
     last_status = 0;
 
     //debug information
-    char *curdir;
+    /*char *curdir;
     if((curdir = malloc(BUFSIZE * sizeof(char))) == NULL) {
     	perror("malloc curdir");
     	return;
     }
     getcwd(curdir,BUFSIZE);
-    printf("current working directory: %s\n", curdir);
+    printf("current working directory: %s\n", curdir);*/
 }
 
 void builtins_echo() {
@@ -322,27 +322,95 @@ void loop() {
        		continue;
        	}
        	else if(pid_exe == 0) {	//child
-       		taskNode *taskHead;
-       		if((taskHead = malloc(sizeof(taskNode))) == NULL) {
-       			perror("malloc to data structure");
-       			exit(EXIT_FAILURE);
+       		printf("parse tokens: ");
+       		for(i = 0; i < token_position; i++) {
+       			printf("%s ", tokens[i]);
        		}
-       		taskHead->out_method = OUT_STD;
+       		printf("\n");
+       		taskNode *taskHead = NULL;
+       		taskNode *cur;
+       		int f_background = 0;
+       		int command_pos = 0;
+       		if((cur = malloc(sizeof(taskNode))) == NULL) {
+       			perror("can't malloc");
+       			exit(CANNOT_EXECUTE);
+       		}
+       		cur->out_method = OUT_STD;
+       		cur->next = NULL;
 
        		for(i = 0; i < token_position; i++) {
        			//non-operator token
-       			if(strcmp(tokens[i], "<") != 0 && strcmp(tokens[i], ">") != 0 && 
-       				strcmp(tokens[i], ">>") != 0 && strcmp(tokens[i], "&") != 0 && 
-       				 strcmp(tokens[i], "|") != 0) {
-       					taskHead->command[i] = tokens[i];
+       			if(strcmp(tokens[i], "<") == 0 || strcmp(tokens[i], ">") == 0 ||
+       				strcmp(tokens[i], ">>") == 0 || strcmp(tokens[i], "&") == 0 || 
+       				 strcmp(tokens[i], "|") == 0) {
+       					//when encounter pipe, create a new task node
+       					if(strcmp(tokens[i], "|") == 0) {
+       						cur->command[command_pos] = NULL;
+       						command_pos = 0;
+							taskNode *newNode;
+							if((newNode = malloc(sizeof(taskNode))) == NULL) {
+								perror("can't malloc");
+								exit(CANNOT_EXECUTE);
+							}
+							newNode->out_method = OUT_STD;
+							newNode->next = NULL;
+							cur->next = newNode;
+							if(taskHead == NULL) {
+								taskHead = cur;
+							}
+							cur = cur->next;
+       					}
+       					//update input file
+       					else if(strcmp(tokens[i], "<") == 0) {
+       						cur->in_file = tokens[++i];
+       					}
+       					//update output file
+       					else if(strcmp(tokens[i], ">") == 0) {
+       						cur->out_method = OUT_FILE;
+       						cur->out_file = tokens[++i];
+       					}
+       					//update append file
+       					else if(strcmp(tokens[i], ">>") == 0) {
+       						cur->out_method = APPEND_FILE;
+       						cur->append_file = tokens[++i];
+       					}
+       					//background operator
+       					else {
+       						if(i != token_position-1) {
+       							printf("background operator & is in wrong position\n");
+       							exit(CANNOT_EXECUTE);
+       						}
+       						else {
+       							f_background = 1;
+       						}
+       					}
        			}
        			else {
-       				taskHead->command[i] = NULL;
-       				break;
+       				cur->command[command_pos++] = tokens[i];
        			}
         	}
-        	execvp(taskHead->command[0], taskHead->command);
-        	fprintf(stderr, "couldn't execute %s: %s\n", tokens[0], strerror(errno));
+        	if(cur->command[command_pos] != NULL) 
+        		cur->command[command_pos] = NULL;
+        	if(taskHead == NULL) 
+        		taskHead = cur;
+        	cur = taskHead;
+        	while(cur) {
+        		if(cur->command[0] == NULL) {
+        			printf("shell: parse error\n");
+        			exit(CANNOT_EXECUTE);
+        		}
+        		printf("\ncommand: ");
+        		int i;
+        		for(i = 0;cur->command[i];i++)
+        			printf("%s ", cur->command[i]);
+        		printf("\nout_method: %d", cur->out_method);
+        		printf("\nout_file: %s", cur->out_file);
+        		printf("\nin_file: %s", cur->in_file);
+        		printf("\nappend_file: %s\n\n", cur->append_file);
+        		cur = cur->next;
+        	}
+        	/*execvp(taskHead->command[0], taskHead->command);
+        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));*/
         	exit(CANNOT_EXECUTE);
 
        	}

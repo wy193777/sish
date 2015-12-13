@@ -18,16 +18,15 @@
 #include <errno.h>
 
 #define BUFSIZE 4096
-#define OUT_STD 1
-#define OUT_FILE 2
-#define APPEND_FILE 3
+#define OUT_STD 7
+#define OUT_FILE 8
+#define APPEND_FILE 9
 #define CANNOT_EXECUTE 127
 
 typedef struct taskNode_ taskNode;
 
 struct taskNode_{
 	char *command[BUFSIZE];
-	int background;
 	int out_method;
 	char *in_file;
 	char *out_file;
