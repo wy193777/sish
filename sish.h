@@ -15,7 +15,20 @@
 #include <signal.h>
 #include <string.h>
 
-#define BUFSIZE 1024
+#define BUFSIZE 4096
+
+typedef struct taskNode_ taskNode;
+
+struct taskNode_{
+	char *command;
+	char *option;
+	char *argument;
+	char *operat;
+	char *in_file;
+	char *out_file;
+	char *append_file;
+	taskNode *next_task;
+};
 
 void init();
 void loop();
