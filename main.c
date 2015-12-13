@@ -41,15 +41,13 @@ int main(int argc, char * argv[]) {
     //set SHELL enviroment variable
     char *sish_path;
     if((sish_path = malloc(BUFSIZE * sizeof(char))) == NULL) {
-    	perror("malloc curdir");
-    	exit(EXIT_FAILURE);
+    	perror("malloc sish_path");
     }
     getcwd(sish_path, BUFSIZE);
     char env[BUFSIZE];
-    sprintf(env, "SHELL=%s", sish_path);
+    sprintf(env, "SHELL=%s/sish", sish_path);
     if((putenv(env)) != 0) {
         perror("putenv");
-        exit(EXIT_FAILURE);
     }
     init();
     loop();

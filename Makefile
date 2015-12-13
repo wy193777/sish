@@ -1,2 +1,2 @@
 all:
-	cc -Wall -g sish.c main.c
+	cc -Wall -g sish.c main.c -o sish

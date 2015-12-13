@@ -8,26 +8,31 @@
 #ifndef SISH_H_
 #define SISH_H_
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <errno.h>
 
 #define BUFSIZE 4096
+#define OUT_STD 1
+#define OUT_FILE 2
+#define APPEND_FILE 3
+#define CANNOT_EXECUTE 127
 
 typedef struct taskNode_ taskNode;
 
 struct taskNode_{
-	char *command;
-	char *option;
-	char *argument;
-	char *operat;
+	char *command[BUFSIZE];
+	int background;
+	int out_method;
 	char *in_file;
 	char *out_file;
 	char *append_file;
-	taskNode *next_task;
+	taskNode *next;
 };
 
 void init();

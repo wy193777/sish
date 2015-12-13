@@ -14,6 +14,7 @@ int token_size;
 char *input_error;
 char ** tokens;
 int last_status = 0;
+pid_t pid_exe;
 
 
 void init() {
@@ -36,10 +37,10 @@ void init() {
     	perror("reset SIGTSTP");
 		exit(EXIT_FAILURE);
     }
-    if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
+    /*if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGCHLD");
 		exit(EXIT_FAILURE);
-    }
+    }*/
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
@@ -64,7 +65,7 @@ char* getinput() {
 
 	if((buf = malloc(sizeof(char) * input_size)) == NULL) {
 		perror("malloc buf");
-		exit(EXIT_FAILURE);
+		return NULL;
 	}
 
 	while(1) {
@@ -84,7 +85,7 @@ char* getinput() {
 					input_size += BUFSIZE;
 					if ((buf = realloc(buf, input_size)) == NULL) {
 						perror("buf realloc");
-						exit(EXIT_FAILURE);
+						return NULL;
 					}
 				}
 				buf[cur++] = ' ';
@@ -96,7 +97,7 @@ char* getinput() {
 					input_size += BUFSIZE;
 					if ((buf = realloc(buf, input_size)) == NULL) {
 						perror("buf realloc");
-						exit(EXIT_FAILURE);
+						return NULL;
 					}
 				}
 				buf[cur++] = ch;
@@ -104,7 +105,7 @@ char* getinput() {
 					input_size += BUFSIZE;
 					if ((buf = realloc(buf, input_size)) == NULL) {
 						perror("buf realloc");
-						exit(EXIT_FAILURE);
+						return NULL;
 					}
 				}
 				if(ch != '>')
@@ -121,7 +122,7 @@ char* getinput() {
 			input_size += BUFSIZE;
 			if ((buf = realloc(buf, input_size)) == NULL) {
 				perror("buf realloc");
-				exit(EXIT_FAILURE);
+				return NULL;
 			}
 		}
 	}
@@ -137,7 +138,7 @@ void split_input(char *line) {
 			token_size += BUFSIZE;
 			if((tokens = realloc(tokens, sizeof(char*) * token_size)) == NULL) {
 				perror("tokens realloc");
-				exit(EXIT_FAILURE);
+				return;
 			}
 		}
 
@@ -147,8 +148,9 @@ void split_input(char *line) {
 						tokens[token_position-1][0] == '>') {
 			if((tokens[token_position] = malloc(sizeof(tokens[token_position-1]))) == NULL) {
 				perror("tokens[token_position] malloc");
-				exit(EXIT_FAILURE);
+				return;
 			}
+			//the ">" operator is in tokens[token_position-1]
 			strcpy(tokens[token_position], &tokens[token_position-1][1]);
 			tokens[token_position-1][1] = '\0';
 			token_position++;
@@ -156,7 +158,7 @@ void split_input(char *line) {
 				token_size += BUFSIZE;
 				if((tokens = realloc(tokens, sizeof(char*) * token_size)) == NULL) {
 					perror("tokens realloc");
-					exit(EXIT_FAILURE);
+					return;
 				}
 			}
 		}
@@ -177,6 +179,7 @@ void builtins_cd(){
 
 	if((dir = malloc(sizeof(char) * BUFSIZE * 4)) == NULL) {
     	perror("malloc dir");
+    	last_status = CANNOT_EXECUTE;
     	return;
     }
 
@@ -189,6 +192,7 @@ void builtins_cd(){
     	strcpy(dir, "/home/");
     	if((user = getlogin()) == NULL) {
     		perror("get username");
+    		last_status = CANNOT_EXECUTE;
     		return;
     	}
     	strcat(dir, user);
@@ -202,6 +206,7 @@ void builtins_cd(){
     	if(tokens[token_position-1][1] == '/') {
     		if((user = getlogin()) == NULL) {
     			perror("get username");
+    			last_status = CANNOT_EXECUTE;
     			return;
     		}
     		strcat(dir, user);
@@ -214,8 +219,11 @@ void builtins_cd(){
     }
     if(chdir(dir) == -1) {
     	perror("cd");
+    	last_status = CANNOT_EXECUTE;
     	return;
     }
+
+    last_status = 0;
 
     //debug information
     char *curdir;
@@ -251,6 +259,7 @@ void builtins_echo() {
 		printf(" ");
 	}
 	printf("\n");
+	last_status = 0;
 }
 
 
@@ -264,12 +273,14 @@ void loop() {
         printf("sish$ ");
 
         //get an input line
-        line = getinput();
+        if((line = getinput()) == NULL) {
+        	continue;
+        }
 
         token_size = BUFSIZE;
         if((tokens = malloc(sizeof(char*) * token_size)) == NULL) {
 			perror("tokens malloc");
-			exit(EXIT_FAILURE);
+			continue;
 		}
 
 		//split input into tokens
@@ -282,10 +293,13 @@ void loop() {
 
         //builtins: exit
         if(strcmp(tokens[0], "exit") == 0) {
-        	if (token_position == 1)
+        	if (token_position == 1) {
+        		last_status = 0;
         		exit(EXIT_SUCCESS);
+        	}
         	else {
         		printf("exit: too many arguments\n");
+        		last_status = CANNOT_EXECUTE;
         		continue;
         	}
         }
@@ -302,8 +316,42 @@ void loop() {
        		continue;
        	}
 
-        for(i = 0; i < token_position; i++) {
-        	printf("%s\n", tokens[i]);
-        }
+       	if((pid_exe = fork()) == -1) {
+       		perror("fork error");
+       		last_status = CANNOT_EXECUTE;
+       		continue;
+       	}
+       	else if(pid_exe == 0) {	//child
+       		taskNode *taskHead;
+       		if((taskHead = malloc(sizeof(taskNode))) == NULL) {
+       			perror("malloc to data structure");
+       			exit(EXIT_FAILURE);
+       		}
+       		taskHead->out_method = OUT_STD;
+
+       		for(i = 0; i < token_position; i++) {
+       			//non-operator token
+       			if(strcmp(tokens[i], "<") != 0 && strcmp(tokens[i], ">") != 0 && 
+       				strcmp(tokens[i], ">>") != 0 && strcmp(tokens[i], "&") != 0 && 
+       				 strcmp(tokens[i], "|") != 0) {
+       					taskHead->command[i] = tokens[i];
+       			}
+       			else {
+       				taskHead->command[i] = NULL;
+       				break;
+       			}
+        	}
+        	execvp(taskHead->command[0], taskHead->command);
+        	fprintf(stderr, "couldn't execute %s: %s\n", tokens[0], strerror(errno));
+        	exit(CANNOT_EXECUTE);
+
+       	}
+       	else { //parent
+       		int status;
+       		if(waitpid(pid_exe, &status, 0) < 0) {
+       			perror("waitpid");
+       		}
+       		last_status = WEXITSTATUS(status);
+       	}   	
     }
 }
