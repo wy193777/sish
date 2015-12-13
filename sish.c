@@ -13,6 +13,7 @@ int token_position;
 int token_size;
 char *input_error;
 char ** tokens;
+int last_status = 0;
 
 
 void init() {
@@ -164,8 +165,6 @@ void split_input(char *line) {
 	}
 }
 
-
-
 void builtins_cd(){
 
 	if(token_position > 2) {
@@ -228,6 +227,32 @@ void builtins_cd(){
     printf("current working directory: %s\n", curdir);
 }
 
+void builtins_echo() {
+	pid_t current_pid = getpid();
+	int i, j;
+	for(i = 1; i < token_position; i++) {
+		int len = strlen(tokens[i]);
+		for(j = 0; j < len; j++) {
+			if (tokens[i][j] == '$' && j < len-1) {
+				if(tokens[i][j+1] == '$') {
+					printf("%llu", (unsigned long long)current_pid);
+					j++;
+				}
+				else if (tokens[i][j+1] == '?') {
+					printf("%d", last_status);
+					j++;
+				}
+				else
+					printf("%c", tokens[i][j]);
+			}
+			else
+				printf("%c", tokens[i][j]);
+		}
+		printf(" ");
+	}
+	printf("\n");
+}
+
 
 void loop() {
     char * line;
@@ -260,7 +285,7 @@ void loop() {
         	if (token_position == 1)
         		exit(EXIT_SUCCESS);
         	else {
-        		printf("exit: too many arguments\nusage: exit\n");
+        		printf("exit: too many arguments\n");
         		continue;
         	}
         }
@@ -270,6 +295,12 @@ void loop() {
         	builtins_cd();
         	continue;
         }
+
+        //builtins: echo
+       	if(strcmp(tokens[0], "echo") == 0) {
+       		builtins_echo();
+       		continue;
+       	}
 
         for(i = 0; i < token_position; i++) {
         	printf("%s\n", tokens[i]);

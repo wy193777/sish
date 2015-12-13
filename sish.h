@@ -21,6 +21,8 @@ void init();
 void loop();
 char* getinput();
 void split_input(char *line);
+void builtins_cd();
+void builtins_echo();
 
 
 #endif /* SISH_H_ */
