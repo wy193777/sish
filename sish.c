@@ -51,8 +51,7 @@ void loop() {
         printf("sish$ ");
         parse_result = yyparse();
         if (top_task == NULL) {
-          printf("top_task is NULL");
-          exit(1);
+          printf("top_task is NULL\n");
         }
         struct task *curr = top_task;
         while (curr) {
