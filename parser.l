@@ -15,6 +15,9 @@
   yylval.str = strdup(yytext);;
   return (AFILE);
 }
+[a-zA-Z0-9\/.\^-]+ {  yylval.str = strdup(yytext);;
+  return (AFILE);
+}
 [ \t]            ;
 [\n]             return 0;
 .                 printf("Syntax Error: %s\n", yytext);
