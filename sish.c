@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-
+#include "sish.h"
 
 void init() {
     pid_t shell_pgid;
@@ -54,5 +54,33 @@ void loop() {
 
         printf("%s", line);
     }
-
 }
+
+struct task *new_task(char *command, char *in_file, char *out_file, char* append_file,
+  int isbg, struct task *next) {
+    struct task *a_task = malloc(sizeof (struct task));
+    if (a_task == NULL) return NULL;
+
+    a_task->command = command;
+    a_task->in_file = in_file;
+    a_task->out_file = out_file;
+    a_task->append_file = append_file;
+    a_task->background = isbg;
+    return a_task;
+}
+struct out_append *new_o_a(char * out, char *append)
+{
+  struct out_append *oas = malloc(sizeof (struct out_append));
+  oas->out = out;
+  oas->append = append;
+  return oas;
+}
+struct redirect * new_redirect(char* in , char* out, char* append)
+{
+  struct  redirect *a_redirect = malloc(sizeof (struct redirect));
+  a_redirect->in = in;
+  a_redirect->out = out;
+  a_redirect->append = append;
+  return a_redirect;
+}
+void yyerror (char *s) {fprintf(stderr, "%s\n", s);}
