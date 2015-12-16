@@ -4,7 +4,7 @@
 
 %%
 (cd)              {yylval.str = strdup(yytext); return (CD);}
-(exit)            {yylval.str = strdup(yytext);return (EXIT);}
+(exit)            {exit(EXIT_SUCCESS);}
 (echo)            {yylval.str = strdup(yytext);return (AECHO);}
 (&)               return (BG);
 (\|)              return (PIPE);

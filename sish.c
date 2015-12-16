@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include "sish.h"
+int yydebug = 0;
 extern struct task * top_task;
 extern struct task * curr_task;
 void init() {

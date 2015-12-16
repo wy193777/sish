@@ -42,7 +42,6 @@ line : expr
          curr_task->next = $3;
          curr_task = curr_task->next;
        }
-     | '\n' {printf("Finish");}
      ;
 
 expr : command any_files
@@ -53,6 +52,7 @@ expr : command any_files
         {
             $$ = new_task($1, $2->in, $2->out, $2->append, 1, NULL);
         }
+     | /* empty */ {;}
      ;
 
 
