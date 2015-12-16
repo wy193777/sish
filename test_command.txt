@@ -1,0 +1,13 @@
+>>>><<<<<<|||||&&&&&
+cd
+cd ~
+cd ~/final_assignment/sish-mhan-sgao
+cd ~donut
+cd ~donut/final_assignment/sish-mhan-sgao
+cd ~nobody
+cd argument1   argument2
+exit dkjfowei  df\
+echo 1111111$$$$$ $$?333$?$?$?$??24543$ $$$
+echo $$$$123$$12$$$1234$????$?$$    	$?$$$e
+echo "saoeijf osdjf d j     sjdf $?$$??$}?"
+
