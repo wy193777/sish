@@ -14,6 +14,7 @@ int token_size;
 char *input_error;
 char ** tokens;
 int last_status = 0;
+int debug_ok = 0;
 pid_t pid_exe;
 
 
@@ -44,10 +45,10 @@ void init() {
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
-//    if (setpgid (shell_pgid, shell_pgid) < 0) {
-//        perror ("Couldn't put the shell in its own process group");
-//        exit (1);
-//    }
+    if (setpgid (shell_pgid, shell_pgid) < 0) {
+        perror ("Couldn't put the shell in its own process group");
+        exit (1);
+    }
 
 //    /* Grab control of the terminal.  */
 //    tcsetpgrp (shell_terminal, shell_pgid);
@@ -328,22 +329,6 @@ void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
        	if(taskHead == NULL)
         		taskHead = cur;
         cur = taskHead;
-//        while(cur) {
-//        	if(cur->command[0] == NULL) {
-//        		printf("shell: parse error\n");
-//        		exit(CANNOT_EXECUTE);
-//        	}
-//        	printf("\ncommand: ");
-//        	int i;
-//        	for(i = 0;cur->command[i];i++)
-//        		printf("%s ", cur->command[i]);
-//        	printf("\nout_method: %d", cur->out_method);
-//        	printf("\nout_file: %s", cur->out_file);
-//        	printf("\nin_file: %s", cur->in_file);
-//        	printf("\nappend_file: %s\n\n", cur->append_file);
-//
-//        	cur = cur->next;
-//        }
 }
 
 
@@ -416,9 +401,9 @@ void loop() {
 
        		makeTask(taskHead, cur, &f_background);
 
-       		execvp(cur->command[0], cur->command);
-        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
-        	//handle(cur);
+//       		execvp(cur->command[0], cur->command);
+//        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
+        	handle(cur);
         	exit(EXIT_SUCCESS);
 
 
@@ -435,6 +420,7 @@ void loop() {
 }
 
 int handle(taskNode *curr) {
+    printf("Handle");
     int from_to[2];
     int in;
     while (curr->next != NULL) {
@@ -443,7 +429,7 @@ int handle(taskNode *curr) {
             perror("pipe");
             exit(CANNOT_EXECUTE);
         }
-        spawn_proc(in, from_to[1], curr->next);
+        spawn_proc(in, from_to[1], curr);
 
         close(from_to[1]);
         in = from_to[0];
@@ -477,6 +463,7 @@ int spawn_proc (int in, int out, taskNode *curr)
   else if(pid < 0) {
       exit(CANNOT_EXECUTE);
   }
+
 
   return pid;
 }
