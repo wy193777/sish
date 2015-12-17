@@ -413,8 +413,8 @@ void loop() {
        		makeTask(cur);
 
         	handle(cur);
-        	fprintf(stderr, "couldn't execute %s: %s\n", cur->command[0], strerror(errno));
-        	exit(CANNOT_EXECUTE);
+        	/*fprintf(stderr, "couldn't execute %s: %s\n", cur->command[0], strerror(errno));
+        	exit(CANNOT_EXECUTE);*/
        	}
        	else { //parent
        		int status;

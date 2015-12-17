@@ -17,5 +17,5 @@ ls|
 ls|&cat
 ls&&&
 abcd|efg|
-ls|
+ls|acg
 
