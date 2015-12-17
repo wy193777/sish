@@ -23,12 +23,6 @@ int f_background = 0;
 
 void init() {
     pid_t shell_pgid;
-    //struct termios shell_tmodes;
-    int shell_terminal;
-    struct termios shell_tmodes;
-
-    /* See if we are running interactively.  */
-    shell_terminal = STDIN_FILENO;
 
     if(signal(SIGINT, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGINT");
@@ -42,10 +36,6 @@ void init() {
     	perror("reset SIGTSTP");
 		exit(EXIT_FAILURE);
     }
-    /*if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
-    	perror("reset SIGCHLD");
-		exit(EXIT_FAILURE);
-    }*/
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
@@ -53,12 +43,6 @@ void init() {
         perror ("Couldn't put the shell in its own process group");
         exit (1);
     }
-
-//    /* Grab control of the terminal.  */
-//    tcsetpgrp (shell_terminal, shell_pgid);
-//
-//    /* Save default terminal attributes for shell.  */
-//    tcgetattr (shell_terminal, &shell_tmodes);
 }
 
 
@@ -267,7 +251,7 @@ void builtins_echo() {
 	last_status = 0;
 }
 
-void makeTask(taskNode *cur) {
+int makeTask(taskNode *cur) {
 
 	int command_pos = 0;
 	int i;
@@ -287,13 +271,15 @@ void makeTask(taskNode *cur) {
        				cur->command[command_pos] = NULL;
        				if(cur->command[0] == NULL) {
        					printf("shell: syntax error near '|'\n");
-       					exit(CANNOT_EXECUTE);
+       					last_status = CANNOT_EXECUTE;
+       					return -1;
        				}
        				command_pos = 0;
 					taskNode *newNode;
 					if((newNode = malloc(sizeof(taskNode))) == NULL) {
 						perror("can't malloc");
-						exit(CANNOT_EXECUTE);
+						last_status = CANNOT_EXECUTE;
+						return -1;
 					}
 					newNode->out_method = OUT_STD;
 					newNode->next = NULL;
@@ -321,7 +307,8 @@ void makeTask(taskNode *cur) {
        			else {
        				if(i != token_position-1) {
        					printf("shell: syntax error near '&'\n");
-       					exit(CANNOT_EXECUTE);
+       					last_status = CANNOT_EXECUTE;
+       					return -1;
        				}
        				else {
        					f_background = 1;
@@ -336,12 +323,14 @@ void makeTask(taskNode *cur) {
        		cur->command[command_pos] = NULL;
        		if(cur->command[0] == NULL) {
        			printf("shell: syntax error\n");
-       			exit(CANNOT_EXECUTE);
+       			last_status = CANNOT_EXECUTE;
+       			return -1;
        		}
        	//}
        	if(taskHead == NULL)
         		taskHead = cur;
         cur = taskHead;
+        return 0;
 }
 
 
@@ -408,7 +397,9 @@ void loop() {
             exit(CANNOT_EXECUTE);
         }
         f_background = 0;
-        makeTask(cur);
+        if(makeTask(cur) == -1) {
+        	continue;
+        }
 
        	if((pid_exe = fork()) == -1) {
        		perror("fork error");
@@ -599,7 +590,5 @@ void spawn_proc (int in, int out, taskNode *curr)
   	  	//get the exit status of last command
   	  	last_status = WEXITSTATUS(status);
   	}
-
-
   //return pid;
 }

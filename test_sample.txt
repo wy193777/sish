@@ -21,3 +21,7 @@ ls|acg
 cat|ls
 ls -al >>out|cat|wc
 pwd>out|cat
+abcd|cat
+cat|abce
+ping google.com|cat
+cat|ping google.com
