@@ -413,7 +413,7 @@ void loop() {
        		makeTask(cur);
 
         	handle(cur);
-        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
+        	fprintf(stderr, "couldn't execute %s: %s\n", cur->command[0], strerror(errno));
         	exit(CANNOT_EXECUTE);
        	}
        	else { //parent
@@ -446,9 +446,11 @@ void handle(taskNode *curr) {
     /* last command */
     if (in != STDIN_FILENO) dup2(in, STDIN_FILENO);
     execvp(curr->command[0], curr->command);
-
+    fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
+    exit(CANNOT_EXECUTE);
 }
-int spawn_proc (int in, int out, taskNode *curr)
+
+void spawn_proc (int in, int out, taskNode *curr)
 {
   pid_t pid;
 
@@ -466,12 +468,14 @@ int spawn_proc (int in, int out, taskNode *curr)
           close (out);
         }
 
-      return execvp (curr->command[0], curr->command);
+      execvp (curr->command[0], curr->command);
+      fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
+      exit(CANNOT_EXECUTE);
     }
   else if(pid < 0) {
       exit(CANNOT_EXECUTE);
   }
 
 
-  return pid;
+  //return pid;
 }
