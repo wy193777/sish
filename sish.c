@@ -24,10 +24,11 @@ int f_background = 0;
 void init() {
     pid_t shell_pgid;
     //struct termios shell_tmodes;
-    //int shell_terminal;
+    int shell_terminal;
+    struct termios shell_tmodes;
 
     /* See if we are running interactively.  */
-    //shell_terminal = STDIN_FILENO;
+    shell_terminal = STDIN_FILENO;
 
     if(signal(SIGINT, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGINT");
@@ -346,14 +347,18 @@ void makeTask(taskNode *cur) {
 
 void loop() {
     char * line;
+    if (f_given_c) {
+        line = given_c;
+    }
     //size_t size = 0;
 
     while (1) {
     	//print a command-line prompt
-        printf("sish$ ");
+        if (f_given_c == 0)
+            printf("sish$ ");
 
         //get an input line
-        if((line = getinput()) == NULL) {
+        if(f_given_c == 0 && (line = getinput()) == NULL) {
         	continue;
         }
 
@@ -396,6 +401,15 @@ void loop() {
        		continue;
        	}
 
+       	//cur will point to taskHead
+       	taskNode *cur;
+       	if((cur = malloc(sizeof(taskNode))) == NULL) {
+            perror("can't malloc");
+            exit(CANNOT_EXECUTE);
+        }
+        f_background = 0;
+        makeTask(cur);
+
        	if((pid_exe = fork()) == -1) {
        		perror("fork error");
        		last_status = CANNOT_EXECUTE;
@@ -403,28 +417,22 @@ void loop() {
        	}
        	//execute commands
        	else if(pid_exe == 0) {	//child
+       	 if(signal(SIGINT, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGINT");
+       	         exit(EXIT_FAILURE);
+       	     }
+       	     if(signal(SIGQUIT, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGQUIT");
+       	         exit(EXIT_FAILURE);
+       	     }
+       	     if(signal(SIGTSTP, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGTSTP");
+       	         exit(EXIT_FAILURE);
+       	     }
 
-       		if(signal(SIGINT, SIG_DFL) == SIG_ERR) {
-    			perror("reset SIGINT");
-				exit(EXIT_FAILURE);
-    		}
-    		if(signal(SIGQUIT, SIG_DFL) == SIG_ERR) {
-    			perror("reset SIGQUIT");
-				exit(EXIT_FAILURE);
-    		}
-    		if(signal(SIGTSTP, SIG_DFL) == SIG_ERR) {
-    			perror("reset SIGTSTP");
-				exit(EXIT_FAILURE);
-    		}
-
-       		taskNode *cur;
-       		if((cur = malloc(sizeof(taskNode))) == NULL) {
-   				perror("can't malloc");
-   				exit(CANNOT_EXECUTE);
-   			}
-
-       		//cur will point to taskHead
-       		makeTask(cur);
+       		if (f_background) {
+       		        setpgid(0, 0);
+       		    }
 
         	handle(cur);
         	/*fprintf(stderr, "couldn't execute %s: %s\n", cur->command[0], strerror(errno));
@@ -432,17 +440,20 @@ void loop() {
        	}
        	else { //parent
        		int status;
-       		if(waitpid(pid_exe, &status, 0) < 0) {
-       			perror("waitpid");
+       		if (f_background == 0) {
+                if(waitpid(pid_exe, &status, 0) < 0) {
+                    perror("waitpid");
+                }
        		}
        		//get the exit status of last command
        		last_status = WEXITSTATUS(status);
        	}
+       	if (f_given_c) break;
     }
 }
 
 void handle(taskNode *curr) {
-    //printf("Handle");
+
     int from_to[2];
     int in;
     int infile_fd;
