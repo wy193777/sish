@@ -18,4 +18,6 @@ ls|&cat
 ls&&&
 abcd|efg|
 ls|acg
-
+cat|ls
+ls -al >>out|cat|wc
+pwd>out|cat
