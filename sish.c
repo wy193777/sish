@@ -347,14 +347,18 @@ void makeTask(taskNode *cur) {
 
 void loop() {
     char * line;
+    if (f_given_c) {
+        line = given_c;
+    }
     //size_t size = 0;
 
     while (1) {
     	//print a command-line prompt
-        printf("sish$ ");
+        if (f_given_c == 0)
+            printf("sish$ ");
 
         //get an input line
-        if((line = getinput()) == NULL) {
+        if(f_given_c == 0 && (line = getinput()) == NULL) {
         	continue;
         }
 
@@ -450,6 +454,7 @@ void loop() {
        		//get the exit status of last command
        		last_status = WEXITSTATUS(status);
        	}
+       	if (f_given_c) break;
     }
 }
 
