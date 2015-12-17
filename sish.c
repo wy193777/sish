@@ -23,12 +23,6 @@ int f_background = 0;
 
 void init() {
     pid_t shell_pgid;
-    //struct termios shell_tmodes;
-    int shell_terminal;
-    struct termios shell_tmodes;
-
-    /* See if we are running interactively.  */
-    shell_terminal = STDIN_FILENO;
 
     if(signal(SIGINT, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGINT");
@@ -42,10 +36,6 @@ void init() {
     	perror("reset SIGTSTP");
 		exit(EXIT_FAILURE);
     }
-    /*if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
-    	perror("reset SIGCHLD");
-		exit(EXIT_FAILURE);
-    }*/
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
@@ -53,12 +43,6 @@ void init() {
         perror ("Couldn't put the shell in its own process group");
         exit (1);
     }
-
-//    /* Grab control of the terminal.  */
-//    tcsetpgrp (shell_terminal, shell_pgid);
-//
-//    /* Save default terminal attributes for shell.  */
-//    tcgetattr (shell_terminal, &shell_tmodes);
 }
 
 
@@ -188,7 +172,7 @@ void builtins_cd(){
     	return;
     }
 
-    /* 
+    /*
 	 *  when [dir] is not specified or equals to "~",
 	 *  change directory to the user's home directory
      */
@@ -267,7 +251,7 @@ void builtins_echo() {
 	last_status = 0;
 }
 
-void makeTask(taskNode *cur) {
+int makeTask(taskNode *cur) {
 
 	int command_pos = 0;
 	int i;
@@ -286,14 +270,16 @@ void makeTask(taskNode *cur) {
        			if(strcmp(tokens[i], "|") == 0) {
        				cur->command[command_pos] = NULL;
        				if(cur->command[0] == NULL) {
-       					printf("shell: syntax error near pipe operator '|'\n");
-       					exit(CANNOT_EXECUTE);
+       					printf("shell: syntax error near '|'\n");
+       					last_status = CANNOT_EXECUTE;
+       					return -1;
        				}
        				command_pos = 0;
 					taskNode *newNode;
 					if((newNode = malloc(sizeof(taskNode))) == NULL) {
 						perror("can't malloc");
-						exit(CANNOT_EXECUTE);
+						last_status = CANNOT_EXECUTE;
+						return -1;
 					}
 					newNode->out_method = OUT_STD;
 					newNode->next = NULL;
@@ -320,8 +306,9 @@ void makeTask(taskNode *cur) {
        			//background operator
        			else {
        				if(i != token_position-1) {
-       					printf("shell: syntax error near background operator '&'\n");
-       					exit(CANNOT_EXECUTE);
+       					printf("shell: syntax error near '&'\n");
+       					last_status = CANNOT_EXECUTE;
+       					return -1;
        				}
        				else {
        					f_background = 1;
@@ -335,8 +322,9 @@ void makeTask(taskNode *cur) {
        	//if(cur->command[command_pos] != NULL) {
        		cur->command[command_pos] = NULL;
        		if(cur->command[0] == NULL) {
-       			printf("shell: syntax error near pipe operator '|'\n");
-       			exit(CANNOT_EXECUTE);
+       			printf("shell: syntax error\n");
+       			last_status = CANNOT_EXECUTE;
+       			return -1;
        		}
        	//}
        	if(taskHead == NULL)
@@ -353,6 +341,7 @@ void makeTask(taskNode *cur) {
             cur = cur->next;
         }
         cur = taskHead;
+        return 0;
 }
 
 void tracing(taskNode *curr, char * buffer) {
@@ -430,7 +419,9 @@ void loop() {
             exit(CANNOT_EXECUTE);
         }
         f_background = 0;
-        makeTask(cur);
+        if(makeTask(cur) == -1) {
+        	continue;
+        }
 
        	if((pid_exe = fork()) == -1) {
        		perror("fork error");
@@ -451,12 +442,6 @@ void loop() {
        	         perror("reset SIGTSTP");
        	         exit(EXIT_FAILURE);
        	     }
-       	     if(signal(SIGCHLD, SIG_DFL) == SIG_ERR) {
-       	         perror("reset SIGCHLD");
-       	         exit(EXIT_FAILURE);
-       	     }
-
-
 
        		if (f_background) {
        		        setpgid(0, 0);
@@ -484,6 +469,8 @@ void handle(taskNode *curr) {
 
     int from_to[2];
     int in;
+    int infile_fd;
+    int outfile_fd;
     while (curr->next != NULL) {
         //printf("Handle");
         if (pipe(from_to)) {
@@ -497,7 +484,44 @@ void handle(taskNode *curr) {
         curr = curr->next;
     }
     /* last command */
-    if (in != STDIN_FILENO) dup2(in, STDIN_FILENO);
+    /*deal with input file*/
+    if(curr->in_file != NULL) {
+    	if((infile_fd = open(curr->in_file, O_RDONLY)) == -1) {
+    		fprintf(stderr, "Unable to open %s: %s\n",
+    			curr->in_file, strerror(errno));
+    		exit(CANNOT_EXECUTE);
+    	}
+    	dup2(infile_fd, STDIN_FILENO);
+    	close(infile_fd);
+    }
+    /*redirect to pipe read end*/
+    else {
+    	if (in != STDIN_FILENO)
+    		dup2(in, STDIN_FILENO);
+	}
+
+    /*deal with output and append file*/
+    if(curr->out_method != OUT_STD) {
+    	switch(curr->out_method) {
+    		case OUT_FILE:
+    			if((outfile_fd = open(curr->out_file, O_CREAT|O_WRONLY|O_TRUNC, 0666)) == -1) {
+    				fprintf(stderr, "can't create file %s: %s\n", curr->out_file, strerror(errno));
+    				exit(CANNOT_EXECUTE);
+    			}
+    			break;
+    		case APPEND_FILE:
+    			if((outfile_fd = open(curr->append_file, O_CREAT|O_WRONLY|O_APPEND, 0666)) == -1) {
+    				fprintf(stderr, "can't create file %s: %s\n", curr->out_file, strerror(errno));
+    				exit(CANNOT_EXECUTE);
+    			}
+    			break;
+    		default:
+    			break;
+    	}
+    	dup2(outfile_fd, STDOUT_FILENO);
+    	close(outfile_fd);
+    }
+
     execvp(curr->command[0], curr->command);
     fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
     exit(CANNOT_EXECUTE);
@@ -505,30 +529,88 @@ void handle(taskNode *curr) {
 
 void spawn_proc (int in, int out, taskNode *curr)
 {
-  pid_t pid;
+	pid_t pid;
+	int infile_fd;
+	int outfile_fd;
 
-  if ((pid = fork ()) == 0)
-    {
-      if (in != STDIN_FILENO)
-        {
-          dup2 (in, STDIN_FILENO);
-          close (in);
-        }
+  	if ((pid = fork ()) == 0) {		//child
+  		/*deal with input file*/
+      	if(curr->in_file != NULL) {
+      		if((infile_fd = open(curr->in_file, O_RDONLY)) == -1) {
+      			fprintf(stderr, "Unable to open %s: %s\n",
+      				curr->in_file, strerror(errno));
+      			exit(CANNOT_EXECUTE);
+      		}
+      		dup2(infile_fd, STDIN_FILENO);
+      		close(infile_fd);
+      	}
+      	/*redirect to pipe read end*/
+  		else {
+  			if (in != STDIN_FILENO) {
+      	    	dup2 (in, STDIN_FILENO);
+      	    	close (in);
+      		}
+      	}
 
-      if (out != STDOUT_FILENO)
-        {
-          dup2 (out, STDOUT_FILENO);
-          close (out);
-        }
+      	/*deal with output and append file*/
+      	if(curr->out_method != OUT_STD) {
+      		switch(curr->out_method) {
+      			case OUT_FILE:
+      				if((outfile_fd = open(curr->out_file, O_CREAT|O_WRONLY|O_TRUNC, 0666)) == -1) {
+      					fprintf(stderr, "can't create file %s: %s\n", curr->out_file, strerror(errno));
+      					exit(CANNOT_EXECUTE);
+      				}
+      				break;
+      			case APPEND_FILE:
+      				if((outfile_fd = open(curr->append_file, O_CREAT|O_WRONLY|O_APPEND, 0666)) == -1) {
+      					fprintf(stderr, "can't create file %s: %s\n", curr->out_file, strerror(errno));
+      					exit(CANNOT_EXECUTE);
+      				}
+      				break;
+      			default:
+      				break;
+      		}
+      		dup2(outfile_fd, STDOUT_FILENO);
+      		close(outfile_fd);
+      		/*pid_t child;
+      		if((child = fork()) < 0) {
+      			fprintf(stderr, "fork: %s\n", strerror(errno));
+      			exit(CANNOT_EXECUTE);
+      		}
+      		else if(child == 0) {
+      			execvp (curr->command[0], curr->command);
+      			fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
+      			exit(CANNOT_EXECUTE);
+      		} else {
+      			int status;
+  	  			if(waitpid(pid, &status, 0) < 0) {
+  	  				perror("waitpid");
+  	  			}
+  	  			//get the exit status of last command
+  	  			last_status = WEXITSTATUS(status);
+      		}*/
+      	}
+      	/*rediret to pipe write end*/
+      	else {
+      		if (out != STDOUT_FILENO) {
+      		    dup2 (out, STDOUT_FILENO);
+      		    close (out);
+      		}
+      	}
 
-      execvp (curr->command[0], curr->command);
-      fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
-      exit(CANNOT_EXECUTE);
-    }
-  else if(pid < 0) {
-      exit(CANNOT_EXECUTE);
-  }
-
-
+      	execvp (curr->command[0], curr->command);
+      	fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
+      	exit(CANNOT_EXECUTE);
+  	}
+  	else if(pid < 0) {
+  	    exit(CANNOT_EXECUTE);
+  	} else {	//parent
+  		int status;
+  	  	if(waitpid(pid, &status, 0) < 0) {
+  	  		perror("waitpid");
+  	  	}
+  	  	//get the exit status of last command
+  	  	last_status = WEXITSTATUS(status);
+  	}
   //return pid;
 }
