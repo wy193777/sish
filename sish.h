@@ -42,6 +42,8 @@ void builtins_cd();
 void builtins_echo();
 void handle(taskNode *curr);
 void spawn_proc (int, int, taskNode*);
+void tracing(taskNode *, char * );
+
 
 
 #endif /* SISH_H_ */

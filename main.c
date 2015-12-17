@@ -11,10 +11,10 @@
  /*
   *  option flags
   */
-int to_stderr = 0;
+
+int f_to_stderr = 0;
 int f_given_c = 0;
 char * given_c;
-
 void usage() {
     printf(
         "sish [-x] [-c command]\n"
@@ -31,7 +31,7 @@ int main(int argc, char * argv[]) {
             given_c = optarg;
             break;
         case 'x':
-            to_stderr = 1;
+            f_to_stderr = 1;
             break;
         default:
             usage();

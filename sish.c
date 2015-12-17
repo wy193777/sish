@@ -6,7 +6,7 @@
  */
 #include "sish.h"
 
-extern int to_stderr;
+extern int f_to_stderr;
 extern int f_given_c;
 extern char * given_c;
 int token_position;
@@ -342,6 +342,28 @@ void makeTask(taskNode *cur) {
        	if(taskHead == NULL)
         		taskHead = cur;
         cur = taskHead;
+        char * buffer = malloc(sizeof(char));
+        if (buffer == NULL) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        while (f_to_stderr && cur) {
+            tracing(cur, buffer);
+            fprintf(stderr, "+%s\n", buffer);
+            cur = cur->next;
+        }
+        cur = taskHead;
+}
+
+void tracing(taskNode *curr, char * buffer) {
+    int length = 0;
+    for (int i = 0; i < BUFSIZE && curr->command[i] != NULL; i++) {
+        printf("tracking %s\n", curr->command[i]);
+        strcat(buffer+length, curr->command[i]);
+        length += strlen(curr->command[i]);
+        strcat(buffer+length, " ");
+        length += 1;
+    }
 }
 
 
