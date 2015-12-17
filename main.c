@@ -1,8 +1,8 @@
 /*
  * referenced
  * http://www.gnu.org/software/libc/manual/html_node/Implementing-a-Shell.html#Implementing-a-Shell
- * and
  * http://stephen-brennan.com/2015/01/16/write-a-shell-in-c/
+ * http://stackoverflow.com/questions/8082932/connecting-n-commands-with-pipes-in-a-shell
  * as tutorials.
  */
 

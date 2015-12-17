@@ -44,10 +44,10 @@ void init() {
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
-    if (setpgid (shell_pgid, shell_pgid) < 0) {
-        perror ("Couldn't put the shell in its own process group");
-        exit (1);
-    }
+//    if (setpgid (shell_pgid, shell_pgid) < 0) {
+//        perror ("Couldn't put the shell in its own process group");
+//        exit (1);
+//    }
 
 //    /* Grab control of the terminal.  */
 //    tcsetpgrp (shell_terminal, shell_pgid);
@@ -110,7 +110,7 @@ char* getinput() {
 				}
 				if(ch != '>')
 					buf[cur++] = ' ';
-				
+
 			}
 		}
 		/* non-operator character */
@@ -143,7 +143,7 @@ void split_input(char *line) {
 		}
 
 		/* split ">" operator */
-		if(strcmp(tokens[token_position-1], ">>") != 0 && 
+		if(strcmp(tokens[token_position-1], ">>") != 0 &&
 				strcmp(tokens[token_position-1], ">") != 0 &&
 						tokens[token_position-1][0] == '>') {
 			if((tokens[token_position] = malloc(sizeof(tokens[token_position-1]))) == NULL) {
@@ -162,7 +162,7 @@ void split_input(char *line) {
 				}
 			}
 		}
-		
+
 		tokens[token_position] = strtok(NULL, "\t ");
 	}
 }
@@ -187,7 +187,7 @@ void builtins_cd(){
 	 *  when [dir] is not specified or equals to "~",
 	 *  change directory to the user's home directory
      */
-    if(token_position == 1 || 
+    if(token_position == 1 ||
     	(token_position == 2 && strcmp(tokens[token_position-1], "~") == 0)) {
     	strcpy(dir, "/home/");
     	if((user = getlogin()) == NULL) {
@@ -266,21 +266,16 @@ void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
 
 	int command_pos = 0;
 	int i;
-   
+
    	cur->out_method = OUT_STD;
    	cur->next = NULL;
 
    	//debug information
-   	printf("parse tokens: ");
-   	for(i = 0; i < token_position; i++) {
-   		printf("%s ", tokens[i]);
-   	}
-   	printf("\n");
 
     for(i = 0; i < token_position; i++) {
        	//non-operator token
        	if(strcmp(tokens[i], "<") == 0 || strcmp(tokens[i], ">") == 0 ||
-       		strcmp(tokens[i], ">>") == 0 || strcmp(tokens[i], "&") == 0 || 
+       		strcmp(tokens[i], ">>") == 0 || strcmp(tokens[i], "&") == 0 ||
        		 strcmp(tokens[i], "|") == 0) {
        			//when encounter pipe, create a new task node
        			if(strcmp(tokens[i], "|") == 0) {
@@ -328,27 +323,27 @@ void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
        			cur->command[command_pos++] = tokens[i];
        		}
         }
-       	if(cur->command[command_pos] != NULL) 
+       	if(cur->command[command_pos] != NULL)
        		cur->command[command_pos] = NULL;
-       	if(taskHead == NULL) 
+       	if(taskHead == NULL)
         		taskHead = cur;
         cur = taskHead;
-        while(cur) {
-        	if(cur->command[0] == NULL) {
-        		printf("shell: parse error\n");
-        		exit(CANNOT_EXECUTE);
-        	}
-        	printf("\ncommand: ");
-        	int i;
-        	for(i = 0;cur->command[i];i++)
-        		printf("%s ", cur->command[i]);
-        	printf("\nout_method: %d", cur->out_method);
-        	printf("\nout_file: %s", cur->out_file);
-        	printf("\nin_file: %s", cur->in_file);
-        	printf("\nappend_file: %s\n\n", cur->append_file);
-
-        	cur = cur->next;
-        }
+//        while(cur) {
+//        	if(cur->command[0] == NULL) {
+//        		printf("shell: parse error\n");
+//        		exit(CANNOT_EXECUTE);
+//        	}
+//        	printf("\ncommand: ");
+//        	int i;
+//        	for(i = 0;cur->command[i];i++)
+//        		printf("%s ", cur->command[i]);
+//        	printf("\nout_method: %d", cur->out_method);
+//        	printf("\nout_file: %s", cur->out_file);
+//        	printf("\nin_file: %s", cur->in_file);
+//        	printf("\nappend_file: %s\n\n", cur->append_file);
+//
+//        	cur = cur->next;
+//        }
 }
 
 
@@ -418,14 +413,13 @@ void loop() {
    				exit(CANNOT_EXECUTE);
    			}
        		int f_background = 0;
-       		
+
        		makeTask(taskHead, cur, &f_background);
 
-       		/*execvp(cur->command[0], cur->command);
+       		execvp(cur->command[0], cur->command);
         	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
-        	exit(CANNOT_EXECUTE);*/
-
-        	exit(CANNOT_EXECUTE);
+        	//handle(cur);
+        	exit(EXIT_SUCCESS);
 
 
        	}
@@ -436,6 +430,53 @@ void loop() {
        		}
        		//get the exit status of last command
        		last_status = WEXITSTATUS(status);
-       	}   	
+       	}
     }
+}
+
+int handle(taskNode *curr) {
+    int from_to[2];
+    int in;
+    while (curr->next != NULL) {
+        printf("Handle");
+        if (pipe(from_to)) {
+            perror("pipe");
+            exit(CANNOT_EXECUTE);
+        }
+        spawn_proc(in, from_to[1], curr->next);
+
+        close(from_to[1]);
+        in = from_to[0];
+        curr = curr->next;
+    }
+    /* last command */
+    if (in != STDIN_FILENO) dup2(in, STDIN_FILENO);
+    return execvp(curr->command[0], curr->command);
+
+}
+int spawn_proc (int in, int out, taskNode *curr)
+{
+  pid_t pid;
+
+  if ((pid = fork ()) == 0)
+    {
+      if (in != STDIN_FILENO)
+        {
+          dup2 (in, STDIN_FILENO);
+          close (in);
+        }
+
+      if (out != STDOUT_FILENO)
+        {
+          dup2 (out, STDOUT_FILENO);
+          close (out);
+        }
+
+      return execvp (curr->command[0], curr->command);
+    }
+  else if(pid < 0) {
+      exit(CANNOT_EXECUTE);
+  }
+
+  return pid;
 }
