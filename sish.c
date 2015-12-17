@@ -24,10 +24,11 @@ int f_background = 0;
 void init() {
     pid_t shell_pgid;
     //struct termios shell_tmodes;
-    //int shell_terminal;
+    int shell_terminal;
+    struct termios shell_tmodes;
 
     /* See if we are running interactively.  */
-    //shell_terminal = STDIN_FILENO;
+    shell_terminal = STDIN_FILENO;
 
     if(signal(SIGINT, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGINT");
@@ -41,10 +42,10 @@ void init() {
     	perror("reset SIGTSTP");
 		exit(EXIT_FAILURE);
     }
-    /*if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
+    if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGCHLD");
 		exit(EXIT_FAILURE);
-    }*/
+    }
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
@@ -403,6 +404,22 @@ void loop() {
        	}
        	//execute commands
        	else if(pid_exe == 0) {	//child
+       	 if(signal(SIGINT, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGINT");
+       	         exit(EXIT_FAILURE);
+       	     }
+       	     if(signal(SIGQUIT, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGQUIT");
+       	         exit(EXIT_FAILURE);
+       	     }
+       	     if(signal(SIGTSTP, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGTSTP");
+       	         exit(EXIT_FAILURE);
+       	     }
+       	     if(signal(SIGCHLD, SIG_DFL) == SIG_ERR) {
+       	         perror("reset SIGCHLD");
+       	         exit(EXIT_FAILURE);
+       	     }
        		taskNode *cur;
        		if((cur = malloc(sizeof(taskNode))) == NULL) {
    				perror("can't malloc");
@@ -410,7 +427,12 @@ void loop() {
    			}
 
        		//cur will point to taskHead
+       		f_background = 0;
        		makeTask(cur);
+       		if (f_background) {
+       		        printf("background");
+       		        setpgid(0, 0);
+       		    }
 
         	handle(cur);
         	/*fprintf(stderr, "couldn't execute %s: %s\n", cur->command[0], strerror(errno));
@@ -428,7 +450,7 @@ void loop() {
 }
 
 void handle(taskNode *curr) {
-    //printf("Handle");
+
     int from_to[2];
     int in;
     while (curr->next != NULL) {
