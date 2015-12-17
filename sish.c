@@ -42,10 +42,10 @@ void init() {
     	perror("reset SIGTSTP");
 		exit(EXIT_FAILURE);
     }
-    if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
+    /*if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
     	perror("reset SIGCHLD");
 		exit(EXIT_FAILURE);
-    }
+    }*/
 
     /* Put ourselves in our own process group.  */
     shell_pgid = getpid ();
@@ -397,6 +397,15 @@ void loop() {
        		continue;
        	}
 
+       	//cur will point to taskHead
+       	taskNode *cur;
+       	if((cur = malloc(sizeof(taskNode))) == NULL) {
+            perror("can't malloc");
+            exit(CANNOT_EXECUTE);
+        }
+        f_background = 0;
+        makeTask(cur);
+
        	if((pid_exe = fork()) == -1) {
        		perror("fork error");
        		last_status = CANNOT_EXECUTE;
@@ -420,17 +429,10 @@ void loop() {
        	         perror("reset SIGCHLD");
        	         exit(EXIT_FAILURE);
        	     }
-       		taskNode *cur;
-       		if((cur = malloc(sizeof(taskNode))) == NULL) {
-   				perror("can't malloc");
-   				exit(CANNOT_EXECUTE);
-   			}
 
-       		//cur will point to taskHead
-       		f_background = 0;
-       		makeTask(cur);
+
+
        		if (f_background) {
-       		        printf("background");
        		        setpgid(0, 0);
        		    }
 
@@ -440,8 +442,10 @@ void loop() {
        	}
        	else { //parent
        		int status;
-       		if(waitpid(pid_exe, &status, 0) < 0) {
-       			perror("waitpid");
+       		if (f_background == 0) {
+                if(waitpid(pid_exe, &status, 0) < 0) {
+                    perror("waitpid");
+                }
        		}
        		//get the exit status of last command
        		last_status = WEXITSTATUS(status);
