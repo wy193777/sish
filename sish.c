@@ -16,6 +16,9 @@ char ** tokens;
 int last_status = 0;
 int debug_ok = 0;
 pid_t pid_exe;
+taskNode *taskHead = NULL;
+int f_background = 0;
+
 
 
 void init() {
@@ -171,7 +174,7 @@ void split_input(char *line) {
 void builtins_cd(){
 
 	if(token_position > 2) {
-    	printf("usage: cd [dir]\n");
+    	printf("cd: too many arguments\n");
     	return;
     }
 
@@ -263,7 +266,7 @@ void builtins_echo() {
 	last_status = 0;
 }
 
-void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
+void makeTask(taskNode *cur) {
 
 	int command_pos = 0;
 	int i;
@@ -281,6 +284,10 @@ void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
        			//when encounter pipe, create a new task node
        			if(strcmp(tokens[i], "|") == 0) {
        				cur->command[command_pos] = NULL;
+       				if(cur->command[0] == NULL) {
+       					printf("shell: syntax error near pipe operator '|'\n");
+       					exit(CANNOT_EXECUTE);
+       				}
        				command_pos = 0;
 					taskNode *newNode;
 					if((newNode = malloc(sizeof(taskNode))) == NULL) {
@@ -312,11 +319,11 @@ void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
        			//background operator
        			else {
        				if(i != token_position-1) {
-       					printf("background operator & is in wrong position\n");
+       					printf("shell: syntax error near background operator '&'\n");
        					exit(CANNOT_EXECUTE);
        				}
        				else {
-       					*f_background = 1;
+       					f_background = 1;
        				}
        			}
        		}
@@ -324,8 +331,13 @@ void makeTask(taskNode *taskHead, taskNode *cur, int *f_background) {
        			cur->command[command_pos++] = tokens[i];
        		}
         }
-       	if(cur->command[command_pos] != NULL)
+       	//if(cur->command[command_pos] != NULL) {
        		cur->command[command_pos] = NULL;
+       		if(cur->command[0] == NULL) {
+       			printf("shell: syntax error near pipe operator '|'\n");
+       			exit(CANNOT_EXECUTE);
+       		}
+       	//}
        	if(taskHead == NULL)
         		taskHead = cur;
         cur = taskHead;
@@ -391,22 +403,18 @@ void loop() {
        	}
        	//execute commands
        	else if(pid_exe == 0) {	//child
-       		taskNode *taskHead = NULL;
        		taskNode *cur;
        		if((cur = malloc(sizeof(taskNode))) == NULL) {
    				perror("can't malloc");
    				exit(CANNOT_EXECUTE);
    			}
-       		int f_background = 0;
 
-       		makeTask(taskHead, cur, &f_background);
+       		//cur will point to taskHead
+       		makeTask(cur);
 
-//       		execvp(cur->command[0], cur->command);
-//        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
         	handle(cur);
-        	exit(EXIT_SUCCESS);
-
-
+        	fprintf(stderr, "couldn't execute %s: %s\n", taskHead->command[0], strerror(errno));
+        	exit(CANNOT_EXECUTE);
        	}
        	else { //parent
        		int status;
@@ -419,12 +427,12 @@ void loop() {
     }
 }
 
-int handle(taskNode *curr) {
-    printf("Handle");
+void handle(taskNode *curr) {
+    //printf("Handle");
     int from_to[2];
     int in;
     while (curr->next != NULL) {
-        printf("Handle");
+        //printf("Handle");
         if (pipe(from_to)) {
             perror("pipe");
             exit(CANNOT_EXECUTE);
@@ -437,7 +445,7 @@ int handle(taskNode *curr) {
     }
     /* last command */
     if (in != STDIN_FILENO) dup2(in, STDIN_FILENO);
-    return execvp(curr->command[0], curr->command);
+    execvp(curr->command[0], curr->command);
 
 }
 int spawn_proc (int in, int out, taskNode *curr)
