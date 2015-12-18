@@ -8,26 +8,26 @@
 
 #include "sish.h"
 
- /*
-  *  option flags
-  */
+/*
+ *  option flags
+ */
 
 int f_to_stderr = 0;
 int f_given_c = 0;
 char * given_c;
 void usage() {
     printf(
-        "sish [-x] [-c command]\n"
-        "-c command Execute the given command\n"
-        "-x Enable tracing: Write each command to standard error, preceeded by +\n");
+            "sish [-x] [-c command]\n"
+                    "-c command Execute the given command\n"
+                    "-x Enable tracing: Write each command to standard error, preceeded by +\n");
 }
 
 int main(int argc, char * argv[]) {
-	int ch;
+    int ch;
     while ((ch = getopt(argc, argv, "c:x")) != -1) {
-        switch(ch) {
+        switch (ch) {
         case 'c':
-        	f_given_c = 1;
+            f_given_c = 1;
             given_c = optarg;
             break;
         case 'x':
@@ -40,16 +40,16 @@ int main(int argc, char * argv[]) {
     }
     //set SHELL enviroment variable
     char *sish_path;
-    if((sish_path = malloc(BUFSIZE * sizeof(char))) == NULL) {
-    	perror("malloc sish_path");
+    if ((sish_path = malloc(BUFSIZE * sizeof(char))) == NULL) {
+        perror("malloc sish_path");
     }
     getcwd(sish_path, BUFSIZE);
     char env[BUFSIZE];
     sprintf(env, "SHELL=%s/sish", sish_path);
-    if((putenv(env)) != 0) {
+    if ((putenv(env)) != 0) {
         perror("putenv");
     }
     init();
     loop();
-	exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
 }

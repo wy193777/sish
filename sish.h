@@ -2,7 +2,6 @@
  * sish.h
  *
  *  Created on: Dec 9, 2015
- *      Author: Shenghan
  */
 
 #ifndef SISH_H_
@@ -27,13 +26,13 @@
 
 typedef struct taskNode_ taskNode;
 
-struct taskNode_{
-	char *command[BUFSIZE];
-	int out_method;
-	char *in_file;
-	char *out_file;
-	char *append_file;
-	taskNode *next;
+struct taskNode_ {
+    char *command[BUFSIZE];
+    int out_method;
+    char *in_file;
+    char *out_file;
+    char *append_file;
+    taskNode *next;
 };
 
 void init();
@@ -43,10 +42,8 @@ void split_input(char *line);
 void builtins_cd();
 void builtins_echo();
 void handle(taskNode *curr);
-void spawn_proc (int, int, taskNode*);
+void spawn_proc(int, int, taskNode*);
 int makeTask(taskNode *cur);
 void gc(taskNode *);
-
-
 
 #endif /* SISH_H_ */
