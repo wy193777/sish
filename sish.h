@@ -40,7 +40,7 @@ void loop();
 char* getinput();
 void split_input(char *line);
 void builtins_cd();
-void builtins_echo();
+void builtins_echo(taskNode *cur);
 void handle(taskNode *curr);
 void spawn_proc(int, int, taskNode*);
 int makeTask(taskNode *cur);
