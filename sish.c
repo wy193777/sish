@@ -60,7 +60,7 @@ char* getinput() {
 	while(1) {
 		ch = getchar();
 
-		/* stop when encouter EOF and '\n' */
+		/* stop when encouter EOF or '\n' */
 		if(ch == EOF || ch == '\n') {
 			buf[cur] = '\0';
 			return buf;
@@ -157,6 +157,13 @@ void split_input(char *line) {
 }
 
 void builtins_cd(){
+	int i;
+	if(f_to_stderr) {
+		fprintf(stderr, "+ ");
+		for(i = 0; i < token_position; i++)
+        	fprintf(stderr, "%s ", tokens[i]);
+        fprintf(stderr, "\n");
+	}
 
 	if(token_position > 2) {
     	printf("cd: too many arguments\n");
@@ -225,8 +232,17 @@ void builtins_cd(){
 }
 
 void builtins_echo() {
-	pid_t current_pid = getpid();
 	int i, j;
+
+	if(f_to_stderr) {
+		fprintf(stderr, "+ ");
+		for(i = 0; i < token_position; i++)
+        	fprintf(stderr, "%s ", tokens[i]);
+        fprintf(stderr, "\n");
+	}
+
+	pid_t current_pid = getpid();
+	
 	for(i = 1; i < token_position; i++) {
 		int len = strlen(tokens[i]);
 		for(j = 0; j < len; j++) {
@@ -348,7 +364,7 @@ void loop() {
     if (f_given_c) {
         line = given_c;
     }
-    //size_t size = 0;
+    int i;
 
     while (1) {
     	//print a command-line prompt
@@ -376,6 +392,12 @@ void loop() {
 
         //builtins: exit
         if(strcmp(tokens[0], "exit") == 0) {
+        	if(f_to_stderr) {
+				fprintf(stderr, "+ ");
+				for(i = 0; i < token_position; i++)
+    		    	fprintf(stderr, "%s ", tokens[i]);
+    		    fprintf(stderr, "\n");
+			}
         	if (token_position == 1) {
         		last_status = 0;
         		exit(EXIT_SUCCESS);
@@ -511,7 +533,7 @@ void handle(taskNode *curr) {
     }
 
     execvp(curr->command[0], curr->command);
-    fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
+    fprintf(stderr, "%s: command not found: %s\n", curr->command[0], strerror(errno));
     exit(CANNOT_EXECUTE);
 }
 
@@ -560,23 +582,6 @@ void spawn_proc (int in, int out, taskNode *curr)
       		}
       		dup2(outfile_fd, STDOUT_FILENO);
       		close(outfile_fd);
-      		/*pid_t child;
-      		if((child = fork()) < 0) {
-      			fprintf(stderr, "fork: %s\n", strerror(errno));
-      			exit(CANNOT_EXECUTE);
-      		}
-      		else if(child == 0) {
-      			execvp (curr->command[0], curr->command);
-      			fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
-      			exit(CANNOT_EXECUTE);
-      		} else {
-      			int status;
-  	  			if(waitpid(pid, &status, 0) < 0) {
-  	  				perror("waitpid");
-  	  			}
-  	  			//get the exit status of last command
-  	  			last_status = WEXITSTATUS(status);
-      		}*/
       	}
       	/*rediret to pipe write end*/
       	else {
@@ -587,7 +592,7 @@ void spawn_proc (int in, int out, taskNode *curr)
       	}
 
       	execvp (curr->command[0], curr->command);
-      	fprintf(stderr, "couldn't execute %s: %s\n", curr->command[0], strerror(errno));
+      	fprintf(stderr, "%s: command not found%s\n", curr->command[0], strerror(errno));
       	exit(CANNOT_EXECUTE);
   	}
   	else if(pid < 0) {
@@ -600,5 +605,4 @@ void spawn_proc (int in, int out, taskNode *curr)
   	  	//get the exit status of last command
   	  	last_status = WEXITSTATUS(status);
   	}
-  //return pid;
 }
