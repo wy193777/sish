@@ -462,6 +462,7 @@ void loop() {
        		last_status = WEXITSTATUS(status);
        	}
        	gc(head);
+       	free(line);
        	if (f_given_c) break;
     }
 }
@@ -621,15 +622,11 @@ void gc(taskNode *head) {
     taskNode * curr = head;
     taskNode * next;
 
+     free(tokens);
+
     while (curr) {
         next = curr->next;
         curr->next = NULL;
-        //for (int i = 0; i < BUFSIZE && curr->command[i] != NULL; i++) {
-            //free(curr->command);
-        //}
-        free(curr->append_file);
-        free(curr->in_file);
-        free(curr->out_file);
         free(curr);
         curr = next;
     }
