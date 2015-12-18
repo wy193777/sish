@@ -27,3 +27,50 @@ ping google.com|cat
 cat|ping google.com
 
 ./sish -c ls -al | cat > outcat
+
+$ sish
+sish$ echo $$
+6465
+sish$ ls
+file1 file2
+sish$ ls | wc -l
+2
+sish$ echo $?
+0
+sish$ find / >/dev/null &
+sish$
+sish$ aed -e -p passin <file >file.enc
+sish$ cmd | sort | uniq -c | sort -n
+121 foo
+304 bar
+sish$ something
+something: command not found
+sish$ echo $?
+127
+sish$ rm /etc/passwd
+rm: /etc/passwd: Permission denied
+sish$ echo $?
+1
+sish$ exit
+$ sish -c date
+Sat Nov 29 21:18:07 EST 2014
+$ sish -x
+sish$ ls
++ ls
+file1 file2
+sish$ ls | wc -l
++ ls
++ wc -l
+2
+sish$ cd /tmp
++ cd /tmp
+sish$ pwd
++ pwd
+/tmp
+sish$ cd
++ cd
+sish$ pwd
++ pwd
+/home/jschauma
+sish$ exit
++ e
