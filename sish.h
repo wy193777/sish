@@ -45,6 +45,7 @@ void builtins_echo();
 void handle(taskNode *curr);
 void spawn_proc (int, int, taskNode*);
 void tracing(taskNode *, char * );
+void gc(taskNode *);
 
 
 

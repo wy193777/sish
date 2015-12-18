@@ -422,7 +422,7 @@ void loop() {
         if(makeTask(cur) == -1) {
         	continue;
         }
-
+        taskNode * head = cur;
        	if((pid_exe = fork()) == -1) {
        		perror("fork error");
        		last_status = CANNOT_EXECUTE;
@@ -461,6 +461,7 @@ void loop() {
        		//get the exit status of last command
        		last_status = WEXITSTATUS(status);
        	}
+       	gc(head);
        	if (f_given_c) break;
     }
 }
@@ -613,4 +614,24 @@ void spawn_proc (int in, int out, taskNode *curr)
   	  	last_status = WEXITSTATUS(status);
   	}
   //return pid;
+}
+
+// free memory
+void gc(taskNode *head) {
+    taskNode * curr = head;
+    taskNode * next;
+
+    while (curr) {
+        next = curr->next;
+        curr->next = NULL;
+        //for (int i = 0; i < BUFSIZE && curr->command[i] != NULL; i++) {
+            //free(curr->command);
+        //}
+        free(curr->append_file);
+        free(curr->in_file);
+        free(curr->out_file);
+        free(curr);
+        curr = next;
+    }
+
 }
