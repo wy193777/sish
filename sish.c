@@ -17,6 +17,8 @@ int debug_ok = 0;
 pid_t pid_exe;
 taskNode *taskHead = NULL;
 int f_background = 0;
+pid_t current_pid;
+
 
 void init() {
     pid_t shell_pgid;
@@ -191,6 +193,7 @@ void builtins_cd() {
         }
         strcat(dir, user);
     }
+
     /*
      *  when [dir] is "~username",
      *  change directory to "/home/username"
@@ -220,37 +223,29 @@ void builtins_cd() {
     last_status = 0;
 }
 
-void builtins_echo() {
+void builtins_echo(taskNode *cur) {
     int i, j;
 
-    if (f_to_stderr) {
-        fprintf(stderr, "+ ");
-        for (i = 0; i < token_position; i++)
-            fprintf(stderr, "%s ", tokens[i]);
-        fprintf(stderr, "\n");
-    }
-
-    pid_t current_pid = getpid();
-
-    for (i = 1; i < token_position; i++) {
-        int len = strlen(tokens[i]);
+    for (i = 1; cur->command[i]; i++) {
+        int len = strlen(cur->command[i]);
         for (j = 0; j < len; j++) {
-            if (tokens[i][j] == '$' && j < len - 1) {
-                if (tokens[i][j + 1] == '$') {
+            if (cur->command[i][j] == '$' && j < len - 1) {
+                if (cur->command[i][j + 1] == '$') {
                     printf("%llu", (unsigned long long) current_pid);
                     j++;
-                } else if (tokens[i][j + 1] == '?') {
+                } else if (cur->command[i][j + 1] == '?') {
                     printf("%d", last_status);
                     j++;
                 } else
-                    printf("%c", tokens[i][j]);
+                    printf("%c", cur->command[i][j]);
             } else
-                printf("%c", tokens[i][j]);
+                printf("%c", cur->command[i][j]);
         }
         printf(" ");
     }
     printf("\n");
     last_status = 0;
+    exit(EXIT_SUCCESS);
 }
 
 int makeTask(taskNode *cur) {
@@ -345,10 +340,10 @@ int makeTask(taskNode *cur) {
 
 void loop() {
     char * line;
+    current_pid = getpid();
     if (f_given_c) {
         line = given_c;
     }
-    int i;
 
     while (1) {
         //print a command-line prompt
@@ -375,34 +370,22 @@ void loop() {
         }
 
         //builtins: exit
-        if (strcmp(tokens[0], "exit") == 0) {
-            if (f_to_stderr) {
-                fprintf(stderr, "+ ");
-                for (i = 0; i < token_position; i++)
-                    fprintf(stderr, "%s ", tokens[i]);
-                fprintf(stderr, "\n");
-            }
-            if (token_position == 1) {
-                last_status = 0;
-                exit(EXIT_SUCCESS);
-            } else {
-                printf("exit: too many arguments\n");
-                last_status = CANNOT_EXECUTE;
-                continue;
-            }
-        }
+    	if (strcmp(tokens[0], "exit") == 0) {
+        	if (token_position == 1) {
+        	    last_status = 0;
+        	    exit(EXIT_SUCCESS);
+        	} else {
+        	    printf("exit: too many arguments\n");
+        	    last_status = CANNOT_EXECUTE;
+        	    continue;
+        	}
+		}
 
-        //builtins: cd
-        if (strcmp(tokens[0], "cd") == 0) {
-            builtins_cd();
-            continue;
-        }
-
-        //builtins: echo
-        if (strcmp(tokens[0], "echo") == 0) {
-            builtins_echo();
-            continue;
-        }
+		//builtins: cd
+    	if (strcmp(tokens[0], "cd") == 0) {
+    	    builtins_cd();
+    	    continue;
+    	}
 
         //cur will point to taskHead
         taskNode *cur;
@@ -521,11 +504,18 @@ void handle(taskNode *curr) {
         dup2(outfile_fd, STDOUT_FILENO);
         close(outfile_fd);
     }
-
-    execvp(curr->command[0], curr->command);
-    fprintf(stderr, "%s: command not found: %s\n", curr->command[0],
-            strerror(errno));
-    exit(CANNOT_EXECUTE);
+    
+    //builtins: echo
+    if (strcmp(curr->command[0], "echo") == 0) {
+        builtins_echo(curr);
+        exit(CANNOT_EXECUTE);
+    }
+    else {
+    	execvp(curr->command[0], curr->command);
+    	fprintf(stderr, "%s: command not found: %s\n", curr->command[0],
+    	        strerror(errno));
+    	exit(CANNOT_EXECUTE);
+	}
 }
 
 void spawn_proc(int in, int out, taskNode *curr) {
@@ -585,10 +575,17 @@ void spawn_proc(int in, int out, taskNode *curr) {
             }
         }
 
-        execvp(curr->command[0], curr->command);
-        fprintf(stderr, "%s: command not found%s\n", curr->command[0],
-                strerror(errno));
-        exit(CANNOT_EXECUTE);
+        //builtins: echo
+        if (strcmp(curr->command[0], "echo") == 0) {
+            builtins_echo(curr);
+            exit(CANNOT_EXECUTE);
+        }
+        else {
+    	    execvp(curr->command[0], curr->command);
+    	    fprintf(stderr, "%s: command not found%s\n", curr->command[0],
+    	            strerror(errno));
+    	    exit(CANNOT_EXECUTE);
+   		}
     } else if (pid < 0) {
         exit(CANNOT_EXECUTE);
     } else {	//parent

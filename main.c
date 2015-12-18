@@ -29,6 +29,7 @@ int main(int argc, char * argv[]) {
         case 'c':
             f_given_c = 1;
             given_c = optarg;
+            //printf("optarg: %s\n", given_c);
             break;
         case 'x':
             f_to_stderr = 1;
