@@ -344,6 +344,7 @@ void loop() {
     if (f_given_c) {
         line = given_c;
     }
+    int i;
 
     while (1) {
         //print a command-line prompt
@@ -371,6 +372,12 @@ void loop() {
 
         //builtins: exit
     	if (strcmp(tokens[0], "exit") == 0) {
+    		if (f_to_stderr) {
+    		    fprintf(stderr, "+ ");
+    		    for (i = 0; i < token_position; i++)
+    		        fprintf(stderr, "%s ", tokens[i]);
+    		    fprintf(stderr, "\n");
+    		}
         	if (token_position == 1) {
         	    last_status = 0;
         	    exit(EXIT_SUCCESS);
