@@ -330,31 +330,18 @@ int makeTask(taskNode *cur) {
        	if(taskHead == NULL)
         		taskHead = cur;
         cur = taskHead;
-        char * buffer = malloc(sizeof(char));
-        if (buffer == NULL) {
-            perror("malloc");
-            exit(EXIT_FAILURE);
-        }
-        while (f_to_stderr && cur) {
-            tracing(cur, buffer);
-            fprintf(stderr, "+%s\n", buffer);
-            cur = cur->next;
+
+        /* -x option */
+        while(cur && f_to_stderr) {
+        	fprintf(stderr, "+ ");
+        	for(i = 0;cur->command[i];i++)
+        		fprintf(stderr, "%s ", cur->command[i]);
+        	fprintf(stderr, "\n");
+        	cur = cur->next;
         }
         cur = taskHead;
         return 0;
 }
-
-void tracing(taskNode *curr, char * buffer) {
-    int length = 0;
-    for (int i = 0; i < BUFSIZE && curr->command[i] != NULL; i++) {
-        printf("tracking %s\n", curr->command[i]);
-        strcat(buffer+length, curr->command[i]);
-        length += strlen(curr->command[i]);
-        strcat(buffer+length, " ");
-        length += 1;
-    }
-}
-
 
 void loop() {
     char * line;
@@ -419,6 +406,7 @@ void loop() {
             exit(CANNOT_EXECUTE);
         }
         f_background = 0;
+        taskHead = NULL;
         if(makeTask(cur) == -1) {
         	continue;
         }
