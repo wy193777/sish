@@ -451,10 +451,13 @@ void loop() {
             //get the exit status of last command
             last_status = WEXITSTATUS(status);
         }
-        gc(head);
-        free(line);
+
         if (f_given_c)
             break;
+        else {
+            gc(head);
+            free(line);
+        }
     }
 }
 
