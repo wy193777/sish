@@ -25,3 +25,5 @@ abcd|cat
 cat|abce
 ping google.com|cat
 cat|ping google.com
+
+./sish -c ls -al | cat > outcat
