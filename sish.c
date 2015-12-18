@@ -359,6 +359,8 @@ void loop() {
         token_size = BUFSIZE;
         if ((tokens = malloc(sizeof(char*) * token_size)) == NULL) {
             perror("tokens malloc");
+            if(f_given_c)
+            	break;
             continue;
         }
 
@@ -367,6 +369,8 @@ void loop() {
 
         //no non-empty tokens
         if (token_position == 0) {
+        	if(f_given_c)
+        		break;
             continue;
         }
 
@@ -384,6 +388,8 @@ void loop() {
         	} else {
         	    printf("exit: too many arguments\n");
         	    last_status = CANNOT_EXECUTE;
+        	    if(f_given_c)
+        	    	break;
         	    continue;
         	}
 		}
@@ -391,6 +397,8 @@ void loop() {
 		//builtins: cd
     	if (strcmp(tokens[0], "cd") == 0) {
     	    builtins_cd();
+    	    if(f_given_c)
+    	    	break;
     	    continue;
     	}
 
@@ -403,12 +411,16 @@ void loop() {
         f_background = 0;
         taskHead = NULL;
         if (makeTask(cur) == -1) {
+        	if(f_given_c)
+        		break;
             continue;
         }
         taskNode * head = cur;
         if ((pid_exe = fork()) == -1) {
             perror("fork error");
             last_status = CANNOT_EXECUTE;
+            if(f_given_c)
+            	break;
             continue;
         }
         //execute commands
@@ -589,7 +601,7 @@ void spawn_proc(int in, int out, taskNode *curr) {
         }
         else {
     	    execvp(curr->command[0], curr->command);
-    	    fprintf(stderr, "%s: command not found%s\n", curr->command[0],
+    	    fprintf(stderr, "%s: command not found: %s\n", curr->command[0],
     	            strerror(errno));
     	    exit(CANNOT_EXECUTE);
    		}
