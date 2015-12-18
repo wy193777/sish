@@ -1,0 +1,413 @@
+commit faee2620d14ecafd9fdfb1a5c403025f96324d87
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 23:30:51 2015 -0500
+
+    Fix command in -c option may cause deadloop bug
+
+commit a89fdce14805ca16e5c869b10572ab920020af47
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 23:18:38 2015 -0500
+
+    Add some contents in README.
+
+commit fa9cd08b1f805afde756f70837ad455a65cd3b2a
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 23:14:41 2015 -0500
+
+    Fix -x option for exit builtins
+
+commit bd811e9e2d6dec19a37d82979a301356a87f1437
+Merge: 901b63f c4adc1e
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 23:01:14 2015 -0500
+
+    Merge branch 'master' of https://github.com/wy193777/sish
+
+commit 901b63f7cbd2aa649aa4323d8a3948f20bb8afd8
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 23:00:36 2015 -0500
+
+    Fix echo builtins in pipe.
+
+commit c4adc1e70252f246fb39d62a750810f8631c31a3
+Merge: 545dfc1 53a67a4
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 22:35:05 2015 -0500
+
+    Merge branch 'master' of https://github.com/wy193777/sish
+
+commit 545dfc1c3e051ab847e0865974741dab57f7919e
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 22:34:12 2015 -0500
+
+    Add some content on README
+
+commit 53a67a4489e59cb05030bd253d3a81d8a41e0341
+Merge: 77bf2cb 29d4b85
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 21:56:54 2015 -0500
+
+    Merge branch 'mingxuanhan-pipe'
+
+commit 29d4b85e74064958721ed0734f38e2604db7e869
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 21:54:43 2015 -0500
+
+    Add testing samples.
+
+commit 77bf2cb8a9053156e2d0e7c7087f0e99dfa80085
+Merge: 640e1f9 5ef83c0
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:48:45 2015 -0500
+
+    Merge branch 'mingxuanhan-pipe'
+
+commit 640e1f98521553ed8ccdc71ec3224e0ce625d8b2
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:47:28 2015 -0500
+
+    delete .gitignore
+
+commit 1d6a606a359203f16e68b0f97fd5a5b6f80bbc18
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:45:12 2015 -0500
+
+    prepare for merge
+
+commit 5ef83c0764a28128d462ac6cf27bc82b2645ca12
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:37:08 2015 -0500
+
+    Fix bug that in -c mode shell will crash
+
+commit c25eb1da55422c28c5d5079b9690e1609908ff1d
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:23:17 2015 -0500
+
+    Delete commented code and format whole project
+
+commit 9f659cb3ff601c1b778845d06869d449c8086c5c
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 21:19:32 2015 -0500
+
+    Remote some useless files.
+
+commit d45ea7aafb699edf4b093cdac1dab29c21298695
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 21:17:21 2015 -0500
+
+    Test some boundary cases.
+
+commit d5c0ffa46b9ef08a84e01ba450acdc78e5e071c4
+Merge: 5f16cda dd15395
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 21:07:00 2015 -0500
+
+    Merge branch 'mingxuanhan-pipe' of https://github.com/wy193777/sish into mingxuanhan-pipe
+
+commit 5f16cdad21c51308aed95952ba275ab38c848a78
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 21:06:31 2015 -0500
+
+    Fix -x option for builtins
+
+commit dd153950ca5d43a81d65ea4b2ed554013a1f2c40
+Merge: bbd7c8d 3fbedbf
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:05:38 2015 -0500
+
+    Merge branch 'mingxuanhan-pipe' of https://github.com/wy193777/sish into mingxuanhan-pipe
+
+commit bbd7c8d869ad74225638fc242addf5d65d0ea566
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 21:03:18 2015 -0500
+
+    gc fully worked
+
+commit 02800eeb5a75c9f6ec3fd6c2b03f03235666a550
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 20:34:43 2015 -0500
+
+    GC works now
+
+commit 3fbedbfe3fada59de1ece5df06822e24f270ce04
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 19:46:10 2015 -0500
+
+    Implement -x option
+    
+    	-Enable tracing: Write each command to standard error,
+    	 preceeded by ’+’.
+
+commit e721904b93225fc8dc09c049aecf3d089a000fbb
+Merge: 3a6f78e 7fa91e0
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 18:16:34 2015 -0500
+
+    Merge branch 'mingxuanhan-pipe' of https://github.com/wy193777/sish into mingxuanhan-pipe
+
+commit 7fa91e0cef990b7a4c18304d99c8f3ee24bd4398
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 18:10:19 2015 -0500
+
+    Fix unexpected exit bugs.
+
+commit 3a6f78ee48a655288e49c2e03a89811f0ae51d65
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 18:09:42 2015 -0500
+
+    -x partly works
+
+commit 831cc0dc9928177c91df6bb42692a8d7286b67a7
+Merge: 3ef8ed5 4be76e0
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 17:42:03 2015 -0500
+
+    Merge branch 'mingxuanhan-pipe' of https://github.com/wy193777/sish into mingxuanhan-pipe
+    
+    Conflicts:
+    	sish.c
+
+commit 3ef8ed5d3a9e160ac7a2483abdf2fca8de4c3f16
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 17:37:42 2015 -0500
+
+    Add input/output/append redirction
+
+commit 4be76e0c74b123707678fb5f879b5dbf0c8a7615
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 16:28:01 2015 -0500
+
+    -c works now
+
+commit 5639823c21db116b382281abe180ec8c29ac13cb
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 15:44:00 2015 -0500
+
+    Background works now
+
+commit 24037ea83b6566ed729e855bf8229904929e3962
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 17 15:26:52 2015 -0500
+
+    back ground almost work
+
+commit 8d33f36091f31bf1896c3cf4c5a7e7fab2897c57
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 14:08:31 2015 -0500
+
+    Delete useless code
+
+commit 5aea0894abc6ad1331dd400a2398de18157f98bb
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 14:06:08 2015 -0500
+
+    Fix error message bug
+
+commit 16c320763ce21f8ffc0a30c0a15b37b82e8f2d81
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Thu Dec 17 13:54:12 2015 -0500
+
+    fix some syntax error bugs
+
+commit 9b41faff90e09c8fd3cf7d8d282f08986070d3c1
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Wed Dec 16 23:50:55 2015 -0500
+
+    pipe works now
+
+commit 508b33e22bed247a90f19898084bab7071ee39dd
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Wed Dec 16 21:03:25 2015 -0500
+
+    Command set group, output work, implement pipe
+    
+    pipe not work yet
+
+commit 152f54cd45defb8051ad54b950ff8a9ed8ce41e8
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Wed Dec 16 15:43:09 2015 -0500
+
+    ignore a.out
+
+commit 769a9a2039727723a74e806dd53cb7044d53c04a
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Wed Dec 16 15:36:58 2015 -0500
+
+    fix 'enter' cause syntax error and add exit
+
+commit e0c806cc0c74ee79bbd97c0402839cfe0ec8d6fc
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Wed Dec 16 15:33:43 2015 -0500
+
+    create makeTask function
+
+commit ce04fcee8f0a8d19f9080974f0ca8d17ff904235
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Wed Dec 16 14:52:46 2015 -0500
+
+    Add some test sample.
+
+commit 0320b4e5b425fa9cdbcbba1779668c825201f9da
+Merge: 872d68d c8ee590
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Wed Dec 16 14:48:07 2015 -0500
+
+    Merge branch 'master' of cs631apue.netmeister.org:/home/sgao9/sish-mhan-sgao
+
+commit 2c17fb0350a80a37fa0d28cada4b41da10b99d70
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sun Dec 13 18:42:46 2015 -0500
+
+    Execute the first command before pipeline.
+
+commit 76eee74722d3fda0eba97ce6fe19c5d99f7a143c
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sun Dec 13 17:51:13 2015 -0500
+
+    Create data structure for command contains operators
+    
+    	-seperate command divided by "|"
+    	-save corresponding input file name and output or append file
+    	 name
+    	-make background flag
+
+commit c8ee590e2cb40776dcf62f0a745c2e480bcc0152
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Sun Dec 13 16:22:37 2015 -0500
+
+    shell will not exit when syntax error occurred
+
+commit c03f23355574ad134a7b964234266b5af1333f26
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sun Dec 13 16:20:46 2015 -0500
+
+    Add fork-execute function
+
+commit 1495613a84fc1c1f13fb81daf365cb77c2c9e8ec
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Sun Dec 13 16:17:26 2015 -0500
+
+    fix the problem that file name or command not support ingle character
+
+commit 402098170e593eab6283c07d488d4c8187a3a499
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Sun Dec 13 16:08:54 2015 -0500
+
+    add yacc parser to main()
+
+commit 385f22e7457f3cd1ea668a0c782422229d0897c5
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Sun Dec 13 16:02:52 2015 -0500
+
+    add yacc related changes to repo
+
+commit daf48f997da18aae011a1ec7452e70fbd5ed14f6
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 22:03:09 2015 -0500
+
+    Set SHELL environment variable
+
+commit a11fa10abb63536d4b6a734406e9f7da7befd0ce
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 19:13:34 2015 -0500
+
+    Add builtin echo
+
+commit 6b226387a1e39f0fc7331b4f547aee6b92b4eb1e
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 17:10:44 2015 -0500
+
+    fix bug "cd ~/directory"
+
+commit 9a615b910c0ef6d9dec07b208e0e4971fe0ce6b1
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 16:29:00 2015 -0500
+
+    fix "cd ~" and "cd ~username" bugs.
+
+commit 0458eb8f4c2accb105eda07e8dc8bbc70799af14
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 14:59:48 2015 -0500
+
+    Add builtins: cd
+
+commit 872d68dc696ef7c75bb04367231cd162f14b9baf
+Merge: 8a3c45a 3d5b20a
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 00:41:38 2015 -0500
+
+    Merge branch 'master' of cs631apue.netmeister.org:/home/sgao9/sish-mhan-sgao
+
+commit 740672a3a8f07d2b2a595e7592c4ceb23dabf37a
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Sat Dec 12 00:38:32 2015 -0500
+
+    Split the input line into tokens.
+    
+    	-can split operators without whitespace
+
+commit 3d5b20a5522d5ad6a592f96dc29b7ae6ef4c5852
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Fri Dec 11 21:53:32 2015 -0500
+
+    Remove generated c file and fixed a bug on parser
+    
+    Fix the bug that parser couldn't work when there is no space between
+    tokens.
+
+commit de856ea291aace96b8109edd48377fd24b8f6129
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Fri Dec 11 21:19:00 2015 -0500
+
+    Add lex file
+    
+    Add parser.l to match different pattern of possible input.
+
+commit a169372b7fadeb55248d916545e1ae217c297b86
+Merge: 1e15618 8a3c45a
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Fri Dec 11 16:10:45 2015 -0500
+
+    Merge branch 'master' into MingxuanHan
+    
+    Conflicts:
+    	README
+
+commit 8a3c45a097c9f214fb780a09c1f873dc8b246781
+Merge: cf519b2 754722e
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Fri Dec 11 16:10:02 2015 -0500
+
+    Merge branch 'master' of cs631apue.netmeister.org:/home/sgao9/sish-mhan-sgao
+    
+    Conflicts:
+    	README
+
+commit 1e156185a3dbdc61a0115a44c71aae8afb7be5c4
+Merge: cf519b2 754722e
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Fri Dec 11 16:08:56 2015 -0500
+
+    Merge branch 'master' of cs631apue.netmeister.org:/home/sgao9/sish-mhan-sgao into MingxuanHan
+    
+    Conflicts:
+    	README
+
+commit 754722e825af4094e0c470d4fe8ec92eaea4f5e9
+Author: Gao <gaoshenghan199123@gmail.com>
+Date:   Thu Dec 10 15:24:42 2015 -0500
+
+    Only could echo what typed in.
+
+commit cf519b236c06ae0dd053ad9cc3690b9380e66c33
+Author: Mingxuan Han <mhan3@stevens.edu>
+Date:   Tue Dec 8 20:43:38 2015 -0500
+
+    Mingxuan was here.
+
+commit 24ab7106f80e9a91e3061295e069c9402eb0a03a
+Author: Shenghan Gao <gaoshenghan199123@gmail.com>
+Date:   Tue Dec 8 20:32:24 2015 -0500
+
+    add README

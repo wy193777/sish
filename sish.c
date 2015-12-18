@@ -21,7 +21,7 @@ pid_t current_pid;
 
 
 void init() {
-    pid_t shell_pgid;
+    //pid_t shell_pgid;
 
     if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
         perror("reset SIGINT");
@@ -37,11 +37,11 @@ void init() {
     }
 
     /* Put ourselves in our own process group.  */
-    shell_pgid = getpid();
+    /*shell_pgid = getpid();
     if (setpgid(shell_pgid, shell_pgid) < 0) {
         perror("Couldn't put the shell in its own process group");
         exit(1);
-    }
+    }*/
 }
 
 char* getinput() {
@@ -49,6 +49,7 @@ char* getinput() {
     int ch;
     int cur = 0;
     int input_size = BUFSIZE;
+    int i = 0;
 
     if ((buf = malloc(sizeof(char) * input_size)) == NULL) {
         perror("malloc buf");
@@ -56,8 +57,17 @@ char* getinput() {
     }
 
     while (1) {
-        ch = getchar();
+    	if(f_given_c) {
+    		ch = given_c[i];
+    		i++;
+    	}
+    	else
+        	ch = getchar();
 
+        if(f_given_c && ch == '\0') {
+        	buf[cur] = '\0';
+        	return buf;
+        }
         /* stop when encouter EOF or '\n' */
         if (ch == EOF || ch == '\n') {
             buf[cur] = '\0';
@@ -341,9 +351,9 @@ int makeTask(taskNode *cur) {
 void loop() {
     char * line;
     current_pid = getpid();
-    if (f_given_c) {
+    /*if (f_given_c) {
         line = given_c;
-    }
+    }*/
     int i;
 
     while (1) {
@@ -352,7 +362,9 @@ void loop() {
             printf("sish$ ");
 
         //get an input line
-        if (f_given_c == 0 && (line = getinput()) == NULL) {
+        if ((line = getinput()) == NULL) {
+        	if(f_given_c)
+        		break;
             continue;
         }
 
